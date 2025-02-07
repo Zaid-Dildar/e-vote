@@ -29,8 +29,9 @@ e-vote/
 │   ├── web/         # Next.js web app (TypeScript)
 │   ├── mobile/      # React Native app (TypeScript)
 │── packages/
-│   ├── eslintconfig/
-│   ├── utils/       # Shared utilities (e.g., validation, API calls)
+│   ├── eslint-config/
+│   ├── typescript-config/
+│   ├── utils/       # Shared utilities
 │── .gitignore
 │── package.json
 │── turbo.json       # Turborepo config
