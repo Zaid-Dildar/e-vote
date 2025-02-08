@@ -9,11 +9,9 @@ The application is deployed on **Vercel**:
 
 ## 🛠️ Tech Stack
 
-```
-. Next.js – React framework for SSR & SSG.
-. TypeScript – Strongly typed JavaScript.
-. Tailwind CSS – Utility-first CSS framework.
-```
+- Next.js – React framework for SSR & SSG.
+- TypeScript – Strongly typed JavaScript.
+- Tailwind CSS – Utility-first CSS framework.
 
 ## 📂 Project Structure
 
@@ -32,7 +30,3 @@ e-vote/
 ## 📝 License
 
 This project is licensed under the [MIT License](LICENSE).
-
-```
-
-```
