@@ -6,7 +6,7 @@ node_modules
 .pnp.js
 
 #Editor config
-.vscode
+vscode
 
 # Local env files
 .env
