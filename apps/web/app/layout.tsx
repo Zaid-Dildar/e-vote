@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import "@ant-design/v5-patch-for-react-19";
-import "../antd-compat"; // Import the compatibility fix
 import "./globals.css";
 
 export const metadata: Metadata = {
