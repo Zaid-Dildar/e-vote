@@ -39,11 +39,10 @@ const HeroSection = () => {
             <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-55 bg-white opacity-10 rotate-12 group-hover:-translate-x-55 ease rounded"></span>
             <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900 transition group-hover:bg-white mr-1">
               <Image
-                src="/assets/images/PlayButton.png"
+                src="/assets/images/PlayButton.svg"
                 alt="Play"
-                width={20}
-                height={20}
-                className="group-hover:invert"
+                width={19}
+                height={19}
               />
             </span>
             <span className="relative tracking-wider">Watch Tutorial</span>
