@@ -36,7 +36,7 @@ const Navbar = () => {
       {/* Action Buttons */}
       <div className="flex items-center">
         <Link
-          href="/sign-up"
+          href="/login"
           className="relative rounded px-10 py-2.5 overflow-hidden group border border-white hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 text-white  hover:ring transition-all ease-out duration-400"
           // className="border border-white text-white px-5 py-2 rounded-xs hover:bg-[#112B4F] "
         >
