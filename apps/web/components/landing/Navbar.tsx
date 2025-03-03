@@ -3,14 +3,14 @@ import Image from "next/image";
 
 const Navbar = () => {
   return (
-    <nav className="fixed w-full z-10 flex justify-between items-center py-4 px-8 bg-black/80 backdrop-blur-xs text-white">
+    <nav className="fixed w-full z-10 flex justify-between items-center py-2 px-8 bg-black/70 backdrop-blur-xs text-white">
       {/* Logo */}
-      <Link className="flex items-center" href="#home">
+      <Link className="flex items-center px-5" href="#home">
         <Image
           src="/assets/images/Logo.svg"
           alt="E-Vote"
-          width={30}
-          height={30}
+          width={40}
+          height={40}
         />
       </Link>
 
@@ -34,18 +34,14 @@ const Navbar = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center space-x-4">
-        <Link
-          href="/login"
-          className=" text-white hover:text-gray-300 transition"
-        >
-          Login
-        </Link>
+      <div className="flex items-center">
         <Link
           href="/sign-up"
-          className="border border-white text-white px-5 py-2 rounded-xs hover:bg-[#112B4F] "
+          className="relative rounded px-10 py-2.5 overflow-hidden group border border-white hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 text-white  hover:ring transition-all ease-out duration-400"
+          // className="border border-white text-white px-5 py-2 rounded-xs hover:bg-[#112B4F] "
         >
-          Sign Up
+          <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-40 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease rounded"></span>
+          <span className="relative tracking-wider">Login</span>
         </Link>
       </div>
     </nav>

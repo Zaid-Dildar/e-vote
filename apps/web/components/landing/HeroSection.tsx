@@ -28,13 +28,16 @@ const HeroSection = () => {
         </p>
         <div className="flex flex-row-reverse gap-x-4">
           <Link
-            href="/sign-up"
-            className="cursor-pointer bg-[#112B4F]/95 hover:bg-[#112B4F] text-white px-6 py-3 rounded-md transition"
+            href="/login"
+            className="relative rounded px-10 py-2.5 overflow-hidden shadow-2xl group bg-gray-900 hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 text-white  hover:ring transition-all ease-out duration-400"
           >
-            Get Started
+            <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-50 bg-white opacity-10 rotate-12 group-hover:-translate-x-50 ease rounded"></span>
+            <span className="relative tracking-wider">Get Started</span>
           </Link>
-          <button className="group cursor-pointer flex items-center hover:bg-[#112B4F]/95 text-white px-6 py-3 rounded-md transition">
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#112B4F] transition group-hover:bg-white mr-1">
+
+          <button className="cursor-pointer flex relative rounded px-7 py-2.5 overflow-hidden shadow-2xl group border hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 text-white  hover:ring transition-all ease-out duration-400">
+            <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-55 bg-white opacity-10 rotate-12 group-hover:-translate-x-55 ease rounded"></span>
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900 transition group-hover:bg-white mr-1">
               <Image
                 src="/assets/images/PlayButton.png"
                 alt="Play"
@@ -42,8 +45,8 @@ const HeroSection = () => {
                 height={20}
                 className="group-hover:invert"
               />
-            </div>
-            Watch Tutorial
+            </span>
+            <span className="relative tracking-wider">Watch Tutorial</span>
           </button>
         </div>
       </div>
