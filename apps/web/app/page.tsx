@@ -70,17 +70,14 @@ export default function Home() {
     let loadedCount = 0;
 
     sections.forEach((section) => {
-      if (typeof window !== "undefined") {
-        const img = new window.Image();
-
-        img.src = section.bg;
-        img.onload = () => {
-          loadedCount++;
-          if (loadedCount === sections.length) {
-            setImagesLoaded(true);
-          }
-        };
-      }
+      const img = new window.Image();
+      img.src = section.bg;
+      img.onload = () => {
+        loadedCount++;
+        if (loadedCount === sections.length) {
+          setImagesLoaded(true);
+        }
+      };
     });
   }, [sections]);
 
