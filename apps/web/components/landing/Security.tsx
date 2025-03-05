@@ -30,9 +30,8 @@ const Security = (): JSX.Element => {
 
   return (
     <section
-      id="security"
       ref={sectionRef}
-      className="flex flex-col items-center justify-center w-full "
+      className="flex flex-col items-center justify-center w-full"
     >
       <motion.div
         initial={{ opacity: 0, y: 50 }}

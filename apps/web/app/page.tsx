@@ -21,7 +21,7 @@ export default function Home() {
   const sections = useMemo<Section[]>(
     () => [
       {
-        id: "hero",
+        id: "home",
         component: <HeroSection />,
         bg: "/assets/images/HeroBackground.jpeg",
         overlay: "bg-black/70",
@@ -61,6 +61,13 @@ export default function Home() {
   const [activeOverlay, setActiveOverlay] = useState<string>(
     sections[0]?.overlay || ""
   );
+
+  useEffect(() => {
+    sections.forEach((section) => {
+      const img = new Image();
+      img.src = section.bg;
+    });
+  }, [sections]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -120,11 +127,12 @@ export default function Home() {
 
       {sections.map((section, index) => (
         <div
+          id={section.id}
           key={section.id}
           ref={(el) => {
             sectionRefs.current[index] = el;
           }}
-          className="relative w-full py-10 lg:py-16 flex items-center justify-center"
+          className="relative w-full py-10 lg:py-16 flex items-center justify-center scroll-mt-20 "
         >
           {section.component}
         </div>

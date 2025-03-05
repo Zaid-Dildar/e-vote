@@ -12,7 +12,6 @@ const HeroSection = () => {
 
   return (
     <section
-      id="home"
       ref={sectionRef}
       className="relative flex flex-col justify-center items-center text-white px-6 sm:px-8 md:px-12 pt-20"
     >

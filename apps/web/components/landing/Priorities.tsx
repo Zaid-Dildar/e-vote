@@ -20,9 +20,8 @@ const Priorities = (): JSX.Element => {
 
   return (
     <motion.section
-      id="priorities"
       ref={sectionRef}
-      className="flex flex-col items-center justify-center w-full px-4"
+      className="flex flex-col items-center justify-center w-full px-4 "
       initial={{ opacity: 0, y: 50 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.8, ease: "easeOut" }}
@@ -63,12 +62,13 @@ const Priorities = (): JSX.Element => {
           {priorities.map(({ id, title, img }) => (
             <motion.div
               key={id}
-              className="flex flex-col items-center p-6 border border-white rounded-lg text-white text-lg font-semibold text-center bg-transparent backdrop-blur-xs hover:bg-white hover:text-gray-900 transition-all duration-300"
+              className="flex flex-col overflow-hidden group items-center p-6 border border-white rounded-lg text-white text-lg font-semibold text-center bg-transparent backdrop-blur-xs hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 hover:ring transition-all ease-out duration-400"
               variants={{
                 hidden: { opacity: 0, scale: 0.8 },
                 visible: { opacity: 1, scale: 1 },
               }}
             >
+              <span className="absolute right-0 w-10 h-68 -mt-12 transition-all duration-1000 transform translate-x-28 bg-white opacity-10 rotate-12 group-hover:-translate-x-120 ease rounded"></span>
               <div className="relative w-24 h-24 md:w-32 md:h-32 mb-4">
                 <Image src={img} alt={title} fill className="object-contain" />
               </div>

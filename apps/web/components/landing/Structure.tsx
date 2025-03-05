@@ -9,7 +9,6 @@ const Structure = (): JSX.Element => {
 
   return (
     <motion.section
-      id="structure"
       ref={sectionRef}
       className="flex flex-col items-center justify-center w-full px-4"
       initial={{ opacity: 0, y: 50 }}
