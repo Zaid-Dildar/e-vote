@@ -46,7 +46,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden flex flex-col items-center space-y-4 py-4 bg-black/80">
+        <div className="md:hidden flex flex-col items-center space-y-4 py-4 bg-gray-900">
           <NavLinks onClick={closeMenu} />
           <LoginButton onClick={closeMenu} />
         </div>

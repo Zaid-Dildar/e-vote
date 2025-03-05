@@ -9,6 +9,7 @@ import Priorities from "@components/landing/Priorities";
 import Security from "@components/landing/Security";
 import Structure from "@components/landing/Structure";
 import Image from "next/image";
+import ParticlesAnimation from "@components/UI/ParticlesAnimation";
 
 interface Section {
   id: string;
@@ -63,10 +64,20 @@ export default function Home() {
     sections[0]?.overlay || ""
   );
 
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
   useEffect(() => {
+    let loadedCount = 0;
+
     sections.forEach((section) => {
       const img = new window.Image();
       img.src = section.bg;
+      img.onload = () => {
+        loadedCount++;
+        if (loadedCount === sections.length) {
+          setImagesLoaded(true);
+        }
+      };
     });
   }, [sections]);
 
@@ -106,14 +117,18 @@ export default function Home() {
 
   return (
     <div className="relative">
-      {/* Background Image with Animation */}
+      {/* Background Fallback: Pulsing Effect */}
+      {!imagesLoaded && (
+        <div className="fixed top-0 left-0 w-full h-screen z-[-2] bg-gray-900 animate-pulse" />
+      )}
+      {/* Background Animation with Image */}
       <AnimatePresence mode="wait">
         <motion.div
           key={activeBg}
-          initial={{ opacity: 0.7, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0.7, scale: 1.05 }}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
+          initial={{ opacity: 0.5, scale: 1.05, filter: "blur(10px)" }}
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0.5, scale: 1.05, filter: "blur(10px)" }}
+          transition={{ duration: 1, ease: "easeInOut" }}
           className="fixed top-0 left-0 w-full h-screen z-[-1] overflow-hidden"
         >
           <Image
@@ -122,8 +137,8 @@ export default function Home() {
             layout="fill"
             objectFit="cover"
             priority
-            quality={90} // Adjust quality to balance performance and visuals
-            className="w-full h-full"
+            quality={90}
+            className="w-full h-full transition-opacity duration-500"
           />
         </motion.div>
       </AnimatePresence>
@@ -132,6 +147,11 @@ export default function Home() {
       <div
         className={`fixed top-0 left-0 w-full h-full z-[-1] transition-all duration-500 ${activeOverlay}`}
       />
+
+      {/* Particle Animation */}
+      <div className="fixed top-0 left-0 w-full h-screen z-[-1] pointer-events-none">
+        <ParticlesAnimation />
+      </div>
 
       <Navbar />
 
