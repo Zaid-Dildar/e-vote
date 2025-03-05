@@ -11,6 +11,8 @@ const createUser = async () => {
     const user = new User({
       name: "Test User",
       email: "test2@example.com",
+      department: "CSE",
+      role: "voter",
       password: "password1234", // Will be hashed automatically
     });
 
