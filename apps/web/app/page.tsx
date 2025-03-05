@@ -64,6 +64,13 @@ export default function Home() {
   );
 
   useEffect(() => {
+    sections.forEach((section) => {
+      const img = new window.Image();
+      img.src = section.bg;
+    });
+  }, [sections]);
+
+  useEffect(() => {
     const handleScroll = () => {
       if (!sectionRefs.current.length) return;
 
