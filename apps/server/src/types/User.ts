@@ -5,7 +5,8 @@ export enum UserRole {
 }
 
 // Define user schema type
-export interface UserType extends Document {
+export interface UserType {
+  _id: string;
   name: string;
   email: string;
   role: UserRole;
