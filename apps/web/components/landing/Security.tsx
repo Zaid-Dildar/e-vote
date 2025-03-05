@@ -1,28 +1,66 @@
+"use client";
+
 import Link from "next/link";
-import React from "react";
+import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { useInView } from "framer-motion";
 
 const Security = (): JSX.Element => {
+  const sectionRef = useRef(null);
+  const [viewAmount, setViewAmount] = useState(0.02);
+
+  useEffect(() => {
+    const updateViewAmount = () => {
+      if (window.innerWidth > 768) {
+        // Larger screens (e.g., desktop)
+        setViewAmount(0.2);
+      } else {
+        // Smaller screens (e.g., mobile)
+        setViewAmount(0.05);
+      }
+    };
+
+    updateViewAmount(); // Set initial value
+    window.addEventListener("resize", updateViewAmount);
+
+    return () => window.removeEventListener("resize", updateViewAmount);
+  }, []);
+
+  const isInView = useInView(sectionRef, { once: true, amount: viewAmount });
+
   return (
     <section
       id="security"
-      className="flex flex-col items-center justify-center min-h-screen w-full bg-cover bg-center bg-no-repeat py-[106px]"
-      style={{
-        backgroundImage:
-          "linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('/assets/images/SecurityBackground.jpeg')",
-      }}
+      ref={sectionRef}
+      className="flex flex-col items-center justify-center w-full "
     >
-      <div className="flex flex-col border-2 border-white rounded-md items-center justify-center w-3/4 px-[20px] py-[50px]">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="flex flex-col border-2 border-white rounded-md items-center justify-center w-11/12 md:w-3/4 px-5 md:px-[20px] py-[40px]  backdrop-blur-xs bg-black/60"
+      >
         {/* Title Section */}
-        <div className="flex flex-col items-center justify-center w-full px-[30px] -mt-[25px] gap-5">
-          <h2 className="w-full font-kadwa text-[40px] text-white leading-[52px] tracking-[0.8px] m-0 ">
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+          className="flex flex-col items-center justify-center w-full gap-5"
+        >
+          <h2 className="text-center font-kadwa text-3xl md:text-4xl text-white tracking-wide">
             Security Technologies
           </h2>
-          <div className="w-full h-[2px] bg-white -mt-2"></div>
-        </div>
+          <div className="w-3/4 md:w-full h-[2px] bg-white"></div>
+        </motion.div>
 
         {/* Paragraph Section */}
-        <div className="flex justify-center w-full mt-2 p-2 text-white">
-          <p className="text-lg mb-8 ">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
+          className="flex justify-center w-full mt-4 px-4 md:px-6 text-white text-sm md:text-lg leading-relaxed"
+        >
+          <p className="text-center md:text-left">
             Lorem ipsum dolor sit amet consectetur. Nunc dui pellentesque mollis
             eget nibh purus. Lectus a pharetra aliquam enim dolor auctor dolor
             vitae consequat. In id velit accumsan lacinia massa lobortis id
@@ -41,25 +79,28 @@ const Security = (): JSX.Element => {
             <br /> Et vel faucibus est nunc in pharetra turpis accumsan. Sit
             euismod etiam vitae laoreet massa feugiat.
           </p>
-        </div>
+        </motion.div>
 
         {/* Button Section */}
-        <div className="flex justify-center mt-5">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.6 }}
+          className="flex justify-center mt-6"
+        >
           <Link
             href="https://github.com/Zaid-Dildar/e-vote/tree/feature/web-landing-page/apps/web"
             target="_blank"
             rel="external"
-            className="relative rounded px-10 py-2.5 overflow-hidden group border border-white hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 text-white  hover:ring transition-all ease-out duration-400"
-            // className="px-6 py-4 cursor-pointer text-white text-lg font-bold rounded-md border-2 border-white hover:bg-[#112B4F]/95"
+            className="relative rounded px-4 lg:px-8 py-3 overflow-hidden group border border-white hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 text-white transition-all ease-out duration-400 text-sm md:text-lg font-bold"
           >
             <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-90 bg-white opacity-10 rotate-12 group-hover:-translate-x-90 ease rounded"></span>
-
-            <span className="relative tracking-wider text-lg font-bold">
+            <span className="relative tracking-wider">
               Get Security Certifications
             </span>
           </Link>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 };
