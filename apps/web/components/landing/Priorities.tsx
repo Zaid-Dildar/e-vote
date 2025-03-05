@@ -68,7 +68,7 @@ const Priorities = (): JSX.Element => {
                 visible: { opacity: 1, scale: 1 },
               }}
             >
-              <span className="absolute right-0 w-10 h-68 -mt-12 transition-all duration-1000 transform translate-x-28 bg-white opacity-10 rotate-12 group-hover:-translate-x-120 ease rounded"></span>
+              <span className="absolute right-0 w-10 h-68 -mt-12 transition-all duration-1000 transform translate-x-20 bg-white opacity-10 rotate-12 group-hover:-translate-x-148 ease rounded"></span>
               <div className="relative w-24 h-24 md:w-32 md:h-32 mb-4">
                 <Image src={img} alt={title} fill className="object-contain" />
               </div>
