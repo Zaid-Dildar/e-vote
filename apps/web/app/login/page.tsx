@@ -4,11 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,8 +18,31 @@ export default function Login() {
       toast.error("Missing required fields!");
       return;
     }
-    setError("");
-    console.log({ email, password });
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed!");
+      }
+
+      toast.success("Login successful!");
+      router.push("/user");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unknown error occurred.");
+      }
+    }
   };
 
   return (
@@ -86,8 +111,6 @@ export default function Login() {
               Password
             </label>
           </div>
-          {/* Error Message */}
-          {error && <p className="text-red-400 text-sm">{error}</p>}
           <div className="relative">
             <div className="mb-2"></div>
             <button
