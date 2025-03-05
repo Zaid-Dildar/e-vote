@@ -1,52 +1,75 @@
-## About
+# E-Vote Server
 
-This project was created with [express-generator-typescript](https://github.com/seanpmaxwell/express-generator-typescript).
+This is the **backend** of the E-Vote system, built with **Express.js** and **TypeScript**.  
+It provides a REST API for the **web** and **mobile** applications, handling authentication, voting logic, and database operations using **MongoDB**.
 
+## 🚀 Features
 
-## Available Scripts
+- TypeScript-based **Express.js** server
+- **MongoDB** with Mongoose ORM
+- **User authentication & validation**
+- **REST API** for web & mobile apps
+- **Security**: Helmet, CORS, and validation with Joi
+- **Logging**: Morgan for request logging
 
-### `npm run clean-install`
+## 📂 Project Structure
 
-Remove the existing `node_modules/` folder, `package-lock.json`, and reinstall all library modules.
+```
+server/              # Express.js backend (TypeScript)
+├── api/                  # Vercel deploymeny
+├── src/
+│       │   ├── config/       # Database & env config
+│       │   ├── controllers/  # Route handlers
+│       │   ├── middlewares/  # Custom middlewares
+│       │   ├── models/       # Mongoose schemas
+│       │   ├── routes/       # API routes
+│       │   ├── validators/   # Request validation
+│       │   ├── app.ts
+│       │   ├── server.ts     # Server entry point
+├── .env.sample              # Environment variables
+├── package.json      # Dependencies & scripts
+├── tsconfig.json     # TypeScript config
+```
 
+## 🛠️ Setup & Installation
 
-### `npm run dev` or `npm run dev:hot` (hot reloading)
+### 1️⃣ Install Dependencies
 
-Run the server in development mode.<br/>
+```sh
+cd apps/server
+npm install
+```
 
-**IMPORTANT** development mode uses `swc` for performance reasons which DOES NOT check for typescript errors. Run `npm run type-check` to check for type errors. NOTE: you should use your IDE to prevent most type errors.
+### 2️⃣ Setup Environment Variables
 
+Create a `.env` file inside `apps/server/` and add:
 
-### `npm test` or `npm run test:hot` (hot reloading)
+```
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/e-vote
+PORT=5000
+```
 
-Run all unit-tests.
+### 3️⃣ Run the Server
 
+```sh
+npm run dev
+```
 
-### `npm test -- "name of test file" (i.e. users).`
+### 4️⃣ Build & Start for Production
 
-Run a single unit-test.
+```sh
+npm run build
+npm start
+```
 
+## 📡 API Endpoints
 
-### `npm run lint`
+| Method | Endpoint             | Description         |
+| ------ | -------------------- | ------------------- |
+| POST   | `/api/auth/register` | Register a new user |
+| POST   | `/api/auth/login`    | User login          |
+| GET    | `/api/votes`         | Get voting details  |
 
-Check for linting errors.
+## 📜 License
 
-
-### `npm run build`
-
-Build the project for production.
-
-
-### `npm start`
-
-Run the production build (Must be built first).
-
-
-### `npm run type-check`
-
-Check for typescript errors.
-
-
-## Additional Notes
-
-- If `npm run dev` gives you issues with bcrypt on MacOS you may need to run: `npm rebuild bcrypt --build-from-source`. 
+This project is licensed under the [MIT License](LICENSE).
