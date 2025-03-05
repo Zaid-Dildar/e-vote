@@ -8,6 +8,7 @@ import About from "@components/landing/About";
 import Priorities from "@components/landing/Priorities";
 import Security from "@components/landing/Security";
 import Structure from "@components/landing/Structure";
+import Image from "next/image";
 
 interface Section {
   id: string;
@@ -63,13 +64,6 @@ export default function Home() {
   );
 
   useEffect(() => {
-    sections.forEach((section) => {
-      const img = new Image();
-      img.src = section.bg;
-    });
-  }, [sections]);
-
-  useEffect(() => {
     const handleScroll = () => {
       if (!sectionRefs.current.length) return;
 
@@ -113,9 +107,18 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0.7, scale: 1.05 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
-          className="fixed top-0 left-0 w-full h-screen bg-cover bg-center z-[-1]"
-          style={{ backgroundImage: `url(${activeBg})` }}
-        />
+          className="fixed top-0 left-0 w-full h-screen z-[-1] overflow-hidden"
+        >
+          <Image
+            src={activeBg}
+            alt="Background"
+            layout="fill"
+            objectFit="cover"
+            priority
+            quality={90} // Adjust quality to balance performance and visuals
+            className="w-full h-full"
+          />
+        </motion.div>
       </AnimatePresence>
 
       {/* Overlay */}
