@@ -17,12 +17,13 @@ The application is deployed on **Vercel**:
 
 ```
 
-e-vote/
-│── apps/
-│ ├── web/ # Next.js web app (TypeScript)
-│── packages/
-│ ├── utils/ # Shared utilities
-│── turbo.json # Turborepo config
+web/                        # Next.js web app (TypeScript)
+│── app/
+│ ├── web/
+│── components/
+│── next.config.json            # next config
+│── tailwind.config.json        # tailwind config
+│── package.json
 │── README.md
 
 ```
