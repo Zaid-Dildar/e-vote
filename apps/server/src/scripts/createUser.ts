@@ -10,8 +10,8 @@ const createUser = async () => {
 
     const user = new User({
       name: "Test User",
-      email: "test@example.com",
-      password: "password123", // Will be hashed automatically
+      email: "test2@example.com",
+      password: "password1234", // Will be hashed automatically
     });
 
     await user.save();
