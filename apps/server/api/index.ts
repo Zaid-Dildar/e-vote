@@ -12,20 +12,6 @@ app.use(express.json());
 app.use(helmet());
 app.use(morgan("dev"));
 
-// Connect to MongoDB before setting up routes
-(async () => {
-  try {
-    await connectDB();
-    console.log("✅ MongoDB Connected Successfully");
-
-    // API Routes
-    app.use("/api", routes);
-  } catch (error) {
-    console.error("❌ Error connecting to MongoDB:", error);
-    process.exit(1); // Stop the process if DB connection fails
-  }
-})();
-
 // Root route with HTML response
 app.get("/", (_req, res) => {
   res.send(`
@@ -57,5 +43,11 @@ app.get("/", (_req, res) => {
     </html>
   `);
 });
+
+// ✅ Register API routes first so they are available immediately
+app.use("/api", routes);
+
+// ✅ Connect to MongoDB after setting up the app
+connectDB();
 
 export default app;
