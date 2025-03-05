@@ -119,15 +119,15 @@ export default function Home() {
     <div className="relative">
       {/* Background Fallback: Pulsing Effect */}
       {!imagesLoaded && (
-        <div className="fixed top-0 left-0 w-full h-screen z-[-2] bg-gray-900 animate-pulse" />
+        <div className="fixed top-0 left-0 w-full h-screen z-[-2] bg-gray-900 animate-[pulse_5s_ease-in-out_infinite]" />
       )}
       {/* Background Animation with Image */}
       <AnimatePresence mode="wait">
         <motion.div
           key={activeBg}
-          initial={{ opacity: 0.5, scale: 1.05, filter: "blur(10px)" }}
+          initial={{ opacity: 0.7, scale: 1.05, filter: "blur(10px)" }}
           animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-          exit={{ opacity: 0.5, scale: 1.05, filter: "blur(10px)" }}
+          exit={{ opacity: 0.7, scale: 1.05, filter: "blur(10px)" }}
           transition={{ duration: 1, ease: "easeInOut" }}
           className="fixed top-0 left-0 w-full h-screen z-[-1] overflow-hidden"
         >
@@ -151,6 +151,8 @@ export default function Home() {
       {/* Particle Animation */}
       <div className="fixed top-0 left-0 w-full h-screen z-[-1] pointer-events-none">
         <ParticlesAnimation />
+
+        {/* <ParticlesAnimation /> */}
       </div>
 
       <Navbar />
@@ -162,7 +164,7 @@ export default function Home() {
           ref={(el) => {
             sectionRefs.current[index] = el;
           }}
-          className="relative w-full py-10 lg:py-16 flex items-center justify-center scroll-mt-20 "
+          className="relative w-full py-10 lg:py-16 flex items-center justify-center scroll-mt-20"
         >
           {section.component}
         </div>
