@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
@@ -18,6 +19,8 @@ export default function Login() {
       toast.error("Missing required fields!");
       return;
     }
+
+    setLoading(true);
 
     try {
       const response = await fetch("/api/login", {
@@ -42,6 +45,8 @@ export default function Login() {
       } else {
         toast.error("An unknown error occurred.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,7 +64,7 @@ export default function Login() {
           <Image
             src="/assets/images/BackButton.svg"
             alt="Play"
-            layout="fill"
+            fill
             className="invert border-2"
           />
         </span>
@@ -69,14 +74,14 @@ export default function Login() {
         onSubmit={handleSubmit}
         className="w-sm md:min-w-sm py-14 m-4 p-10 bg-slate-600/90 shadow-drop-2-center rounded-3xl"
       >
-        <div className=" text-base leading-6 space-y-8 text-gray-700 sm:text-lg sm:leading-7">
-          <div className=" mb-4">
+        <div className="text-base leading-6 space-y-8 text-gray-700 sm:text-lg sm:leading-7">
+          <div className="mb-4">
             <Image
               className="m-auto"
               src="/assets/images/Logo.svg"
               alt="Fingerprint Icon"
               width={50}
-              height={50}
+              height={74}
             />
           </div>
           <div className="relative">
@@ -115,10 +120,22 @@ export default function Login() {
             <div className="mb-2"></div>
             <button
               type="submit"
-              className="cursor-pointer px-5 py-2.5 overflow-hidden group bg-gray-900 relative hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 text-white hover:ring-2 hover:ring-offset-2 hover:ring-gray-800 transition-all ease-out duration-300 rounded w-full"
+              disabled={loading}
+              className={`px-5 py-2.5 overflow-hidden group relative transition-all ease-out duration-300 rounded w-full
+                ${
+                  loading
+                    ? "cursor-not-allowed bg-gradient-to-r from-gray-900/70 to-gray-800/70 text-white ring-2 ring-offset-2 ring-gray-800"
+                    : "cursor-pointer bg-gray-900 hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 text-white hover:ring-2 hover:ring-offset-2 hover:ring-gray-800"
+                }`}
             >
-              <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transhtmlForm translate-x-80 bg-white opacity-10 rotate-12 group-hover:-translate-x-80 ease rounded"></span>
-              <span className="relative tracking-wider">Login</span>
+              <span
+                className={`absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-80 bg-white opacity-10 rotate-12 ease rounded 
+                  ${loading ? "animate-slide" : "group-hover:-translate-x-80"}
+                `}
+              ></span>
+              <span className="relative tracking-wider">
+                {loading ? "Logging in..." : "Login"}
+              </span>
             </button>
             <div className="justify-content-between mt-2 d-flex small"></div>
           </div>

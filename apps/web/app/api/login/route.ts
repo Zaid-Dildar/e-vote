@@ -25,15 +25,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Store token in HTTP-only cookies for security
+    // Store token & role in HTTP-only cookies
     const response = NextResponse.json({
       message: "Login successful",
       user: data.user,
     });
+    console.log("user", data.user);
+    response.cookies.set("token", data.user.token, {
+      httpOnly: true,
+      secure: process.env.NEXT_PUBLIC_NODE_ENV === "production",
+      path: "/",
+    });
 
-    response.cookies.set({
-      name: "token",
-      value: data.token,
+    response.cookies.set("role", data.user.role, {
       httpOnly: true,
       secure: process.env.NEXT_PUBLIC_NODE_ENV === "production",
       path: "/",
