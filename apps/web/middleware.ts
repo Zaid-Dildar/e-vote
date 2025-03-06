@@ -25,7 +25,10 @@ export function middleware(req: NextRequest) {
       if (!token || !role) {
         console.log("❌ No token or role - Redirecting to /login");
         return NextResponse.redirect(new URL("/login", req.url));
-      } else if (!protectedRoutes[route].includes(role)) {
+      } else if (
+        protectedRoutes[route] &&
+        !protectedRoutes[route].includes(role)
+      ) {
         console.log("❌ Unauthorized role - Redirecting to /unauthorized");
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
