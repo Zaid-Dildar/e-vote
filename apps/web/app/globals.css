@@ -52,3 +52,16 @@
   line-height: var(--h3-line-height);
   font-style: var(--h3-font-style);
 }
+
+@keyframes marquee {
+  0% {
+    transform: translateX(-700%);
+  }
+  100% {
+    transform: translateX(700%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 2s linear infinite;
+}

@@ -117,27 +117,32 @@ export default function Login() {
             </label>
           </div>
           <div className="relative">
-            <div className="mb-2"></div>
             <button
               type="submit"
               disabled={loading}
-              className={`px-5 py-2.5 overflow-hidden group relative transition-all ease-out duration-300 rounded w-full
-                ${
-                  loading
-                    ? "cursor-not-allowed bg-gradient-to-r from-gray-900/70 to-gray-800/70 text-white ring-2 ring-offset-2 ring-gray-800"
-                    : "cursor-pointer bg-gray-900 hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 text-white hover:ring-2 hover:ring-offset-2 hover:ring-gray-800"
-                }`}
+              className={`overflow-hidden px-5 py-2.5 relative transition-all ease-out duration-300 rounded w-full group
+    ${
+      loading
+        ? "cursor-not-allowed bg-gradient-to-r from-gray-900/70 to-gray-800/70 text-white ring-2 ring-offset-2 ring-gray-800"
+        : "cursor-pointer bg-gray-900 hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 text-white hover:ring-2 hover:ring-offset-2 hover:ring-gray-800"
+    }`}
             >
+              {/* Moving Shine Effect */}
               <span
-                className={`absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-80 bg-white opacity-10 rotate-12 ease rounded 
-                  ${loading ? "animate-slide" : "group-hover:-translate-x-80"}
-                `}
-              ></span>
+                className={`absolute -top-10 w-10 h-30 bg-white opacity-10 rotate-6 
+      ${
+        loading
+          ? "animate-marquee" // Continuous movement when loading
+          : "translate-x-80 group-hover:-translate-x-80 transition-all duration-1000 ease"
+      }
+    `}
+              />
+
+              {/* Button Text */}
               <span className="relative tracking-wider">
                 {loading ? "Logging in..." : "Login"}
               </span>
             </button>
-            <div className="justify-content-between mt-2 d-flex small"></div>
           </div>
         </div>
       </form>
