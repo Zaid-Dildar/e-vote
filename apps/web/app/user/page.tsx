@@ -13,7 +13,7 @@ const Page = () => {
         throw new Error("Logout failed");
       }
 
-      router.push("/login");
+      router.replace("/login");
     } catch (error) {
       console.error("Logout error:", error);
     }

@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const token = req.cookies.get("token")?.value ?? "";
-  const role = req.cookies.get("role")?.value ?? "";
+  const token = req.cookies.get("token")?.value;
+  const role = req.cookies.get("role")?.value;
   const pathname = req.nextUrl.pathname;
 
-  console.log("🔍 Token:", token);
-  console.log("🔍 Role:", role);
-  console.log("🔍 Pathname:", pathname);
+  console.log("🚀 Middleware Debug:", { token, role, pathname });
 
   if (!role) {
-    console.log("❌ No role - Redirecting to /unauthorized");
+    console.log("❌ No role found - Redirecting to /unauthorized");
     return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
@@ -27,10 +25,7 @@ export function middleware(req: NextRequest) {
       if (!token || !role) {
         console.log("❌ No token or role - Redirecting to /login");
         return NextResponse.redirect(new URL("/login", req.url));
-      } else if (
-        protectedRoutes[route] &&
-        !protectedRoutes[route].includes(role)
-      ) {
+      } else if (!protectedRoutes[route].includes(role)) {
         console.log("❌ Unauthorized role - Redirecting to /unauthorized");
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
