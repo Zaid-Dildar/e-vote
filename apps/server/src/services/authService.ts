@@ -12,9 +12,10 @@ export const authenticateUser = async (email: string, password: string) => {
   if (!isMatch) throw new Error("Invalid email or password");
 
   return {
-    id: user._id,
     name: user.name,
     email: user.email,
+    role: user.role,
+    department: user.department,
     token: generateToken(user._id),
   };
 };

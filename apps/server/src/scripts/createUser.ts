@@ -7,7 +7,7 @@ dotenv.config();
 const createUser = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI as string);
-
+    await User.deleteMany({});
     const user = new User({
       name: "Test User",
       email: "test2@example.com",
