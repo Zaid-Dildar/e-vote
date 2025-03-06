@@ -1,36 +1,62 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import User from "../models/user.model";
-import bcrypt from "bcryptjs";
 
 dotenv.config();
 
-const createUser = async () => {
+const createUsers = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI as string);
+    const mongoUri = process.env.MONGO_URI;
+    if (!mongoUri) {
+      throw new Error("MONGO_URI is not set in .env file");
+    }
 
-    // Delete all existing users before adding a new test user
+    console.log("Connecting to MongoDB...");
+    await mongoose.connect(mongoUri);
+    console.log("✅ Connected to MongoDB");
+
+    // Delete all existing users before adding new ones
     await User.deleteMany({});
+    console.log("🗑️ Deleted all existing users");
 
-    const user = new User({
-      name: "Test User",
-      email: "test2@example.com",
-      department: "CSE",
-      role: "voter",
-      password: "password1234", // Store hashed password
+    const users = [
+      {
+        name: "Test User 1",
+        email: "test2@example.com",
+        department: "CSE",
+        role: "voter",
+        password: "password1234", // If passwords are hashed, hash before inserting
+        biometricRegistered: true,
+        faceIdKey: "sample-face-id-key",
+        fingerprintKey: "sample-fingerprint-key",
+      },
+      {
+        name: "Test User 2",
+        email: "test3@example.com",
+        department: "CSE",
+        role: "voter",
+        password: "password12345",
+      },
+      {
+        name: "Test User 3",
+        email: "test4@example.com",
+        department: "CSE",
+        role: "voter",
+        password: "password123456",
+        biometricRegistered: true,
+        faceIdKey: "sample-face-id-key",
+      },
+    ];
 
-      biometricRegistered: true,
-      faceIdKey: "sample-face-id-key", // Replace with actual face ID key
-      fingerprintKey: "sample-fingerprint-key", // Replace with actual fingerprint key
-    });
-
-    await user.save();
-    console.log("✅ Test user created successfully!");
+    // Use insertMany for better performance
+    await User.insertMany(users);
+    console.log("✅ Test users created successfully!");
   } catch (error) {
-    console.error("❌ Error creating user:", error);
+    console.error("❌ Error creating users:", error);
   } finally {
     await mongoose.connection.close();
+    console.log("🔌 Disconnected from MongoDB");
   }
 };
 
-createUser();
+createUsers();
