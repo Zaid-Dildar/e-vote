@@ -55,7 +55,10 @@ export const verifyBiometric = async (
   providedBiometricKey: string
 ): Promise<boolean> => {
   const user = await User.findById(id);
-  if (!user || !user.biometricRegistered || !user.biometricKey) return false;
+  if (!user || !user.biometricRegistered) return false;
 
-  return user.biometricKey === providedBiometricKey;
+  const biometricKey = user.faceIdKey || user.fingerprintKey;
+  if (!biometricKey) return false;
+
+  return biometricKey === providedBiometricKey;
 };

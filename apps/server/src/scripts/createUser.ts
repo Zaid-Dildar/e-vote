@@ -12,8 +12,6 @@ const createUser = async () => {
     // Delete all existing users before adding a new test user
     await User.deleteMany({});
 
-    // Hash the password before saving
-
     const user = new User({
       name: "Test User",
       email: "test2@example.com",
@@ -21,8 +19,9 @@ const createUser = async () => {
       role: "voter",
       password: "password1234", // Store hashed password
 
-      biometricRegistered: true, // Corrected field name
-      biometricKey: "your-biometric-public-key", // Corrected field name
+      biometricRegistered: true,
+      faceIdKey: "sample-face-id-key", // Replace with actual face ID key
+      fingerprintKey: "sample-fingerprint-key", // Replace with actual fingerprint key
     });
 
     await user.save();

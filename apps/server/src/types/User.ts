@@ -13,7 +13,8 @@ export interface UserType {
   department: string;
   password: string;
   biometricRegistered: boolean; // Has the user enrolled biometrics?
-  biometricKey?: string | null; // Stores the biometric public key or reference
+  faceIdKey?: string | null; // Stores the biometric public key or reference
+  fingerprintKey?: string | null; // Stores the biometric public key or reference
   createdAt?: Date;
   updatedAt?: Date;
 }

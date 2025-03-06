@@ -11,8 +11,9 @@ const UserSchema = new Schema<UserType>(
     password: { type: String, required: true },
 
     // Biometric Authentication Fields
-    biometricRegistered: { type: Boolean, default: false }, // Has the user enrolled biometrics?
-    biometricKey: { type: String, default: null }, // Stores the biometric public key or reference
+    biometricRegistered: { type: Boolean, default: false },
+    faceIdKey: { type: String, default: null }, // Store Face ID biometric key
+    fingerprintKey: { type: String, default: null }, // Store Fingerprint biometric key
   },
   { timestamps: true }
 );
