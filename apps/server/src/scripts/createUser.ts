@@ -1,23 +1,24 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 import User from "../models/user.model";
 
 dotenv.config();
 
-const createUsers = async () => {
+const createUser = async () => {
   try {
-    const mongoUri = process.env.MONGO_URI;
-    if (!mongoUri) {
-      throw new Error("MONGO_URI is not set in .env file");
-    }
-
-    console.log("Connecting to MongoDB...");
-    await mongoose.connect(mongoUri);
+    await mongoose.connect(process.env.MONGO_URI as string);
     console.log("✅ Connected to MongoDB");
 
-    // Delete all existing users before adding new ones
+    // Delete all existing users before adding new test users
     await User.deleteMany({});
-    console.log("🗑️ Deleted all existing users");
+    console.log("🗑️ Existing users deleted");
+
+    // Function to hash passwords
+    const hashPassword = async (password: string) => {
+      const salt = await bcrypt.genSalt(10);
+      return await bcrypt.hash(password, salt);
+    };
 
     const users = [
       {
@@ -25,7 +26,7 @@ const createUsers = async () => {
         email: "test2@example.com",
         department: "CSE",
         role: "voter",
-        password: "password1234", // If passwords are hashed, hash before inserting
+        password: await hashPassword("password1234"), // Hashing manually
         biometricRegistered: true,
         faceIdKey: "sample-face-id-key",
         fingerprintKey: "sample-fingerprint-key",
@@ -35,22 +36,24 @@ const createUsers = async () => {
         email: "test3@example.com",
         department: "CSE",
         role: "voter",
-        password: "password12345",
+        password: await hashPassword("password12345"),
       },
       {
         name: "Test User 3",
         email: "test4@example.com",
         department: "CSE",
         role: "voter",
-        password: "password123456",
+        password: await hashPassword("password123456"),
         biometricRegistered: true,
         faceIdKey: "sample-face-id-key",
       },
     ];
 
-    // Use insertMany for better performance
-    await User.insertMany(users);
+    // Insert users into the database
+    const createdUsers = await User.insertMany(users);
+
     console.log("✅ Test users created successfully!");
+    console.log(createdUsers); // Log the users to verify insertion
   } catch (error) {
     console.error("❌ Error creating users:", error);
   } finally {
@@ -59,4 +62,4 @@ const createUsers = async () => {
   }
 };
 
-createUsers();
+createUser();

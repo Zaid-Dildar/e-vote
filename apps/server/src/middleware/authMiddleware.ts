@@ -18,14 +18,10 @@ export const protect = async (
     req.headers.authorization.startsWith("Bearer")
   ) {
     try {
-      console.log("auth", req.headers.authorization);
       // Get token from header
       token = req.headers.authorization.split(" ")[1];
-      console.log("token", token);
       // Verify token
       const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
-
-      console.log("id", decoded.id);
 
       // Attach user info to request (without password)
       req.user = await User.findById(decoded.userId).select("-password");
