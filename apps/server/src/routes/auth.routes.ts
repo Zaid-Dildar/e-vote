@@ -1,9 +1,12 @@
-import express from "express";
-import { login } from "../controllers/auth.controller";
+import { Router } from "express";
+import { login, biometricLogin } from "../controllers/auth.controller";
 
-const router = express.Router();
+const router = Router();
 
-// Login route
+// Standard Login
 router.post("/login", login);
+
+// Biometric Login
+router.post("/login/biometric", biometricLogin);
 
 export default router;

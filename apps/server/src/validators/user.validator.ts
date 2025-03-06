@@ -5,6 +5,8 @@ const userSchema = Joi.object({
   name: Joi.string().min(3).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
+  role: Joi.string().valid("admin", "voter", "auditor").required(),
+  hasBiometrics: Joi.boolean().required(),
 });
 
 export const validateUser = (
@@ -12,10 +14,15 @@ export const validateUser = (
   res: Response,
   next: NextFunction
 ): void => {
-  const { error } = userSchema.validate(req.body);
+  const { error } = userSchema.validate(req.body, { abortEarly: false });
+
   if (error) {
-    res.status(400).json({ message: error.details[0].message });
-    return; // Ensure the function stops execution after sending a response
+    res.status(400).json({
+      message: "Validation error",
+      errors: error.details.map((err) => err.message),
+    });
+    return;
   }
-  next(); // Explicitly call next() when validation passes
+
+  next(); // Proceed if validation passes
 };
