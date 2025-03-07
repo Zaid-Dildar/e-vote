@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import CustomToaster from "../components/UI/CustomToaster"; // Import the client component
+import CustomToaster from "./components/UI/CustomToaster"; // Import the client component
 
 export const metadata: Metadata = {
   title: "E-Vote",

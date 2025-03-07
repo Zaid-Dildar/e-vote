@@ -7,6 +7,23 @@ export function middleware(req: NextRequest) {
 
   console.log("🚀 Middleware Debug:", { token, role, pathname });
 
+  // Skip token check for the login API route
+  if (pathname.startsWith("/api/login")) {
+    return NextResponse.next();
+  }
+
+  // ✅ 1️⃣ Token Check for API Requests
+  if (pathname.startsWith("/api")) {
+    if (!token) {
+      console.log("❌ No token - Unauthorized API access");
+      return NextResponse.json(
+        { message: "Unauthorized: No token provided" },
+        { status: 401 }
+      );
+    }
+  }
+
+  // ✅ 2️⃣ Role-Based Access for Frontend Pages
   if (!role) {
     console.log("❌ No role found - Redirecting to /unauthorized");
     return NextResponse.redirect(new URL("/unauthorized", req.url));
@@ -39,7 +56,12 @@ export function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Apply middleware to relevant routes, excluding API calls
+// ✅ Apply middleware to API calls and frontend routes (excluding /api/login)
 export const config = {
-  matcher: ["/admin/:path*", "/user/:path*", "/audit/:path*"],
+  matcher: [
+    "/api/:path*", // Apply to all API routes
+    "/admin/:path*",
+    "/user/:path*",
+    "/audit/:path*",
+  ],
 };

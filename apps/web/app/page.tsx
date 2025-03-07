@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Navbar from "@components/landing/Navbar";
-import HeroSection from "@components/landing/HeroSection";
-import About from "@components/landing/About";
-import Priorities from "@components/landing/Priorities";
-import Security from "@components/landing/Security";
-import Structure from "@components/landing/Structure";
+import Navbar from "./components/landing/Navbar";
+import HeroSection from "./components/landing/HeroSection";
+import About from "./components/landing/About";
+import Priorities from "./components/landing/Priorities";
+import Security from "./components/landing/Security";
+import Structure from "./components/landing/Structure";
 import Image from "next/image";
-import ParticlesAnimation from "@components/UI/ParticlesAnimation";
+import ParticlesAnimation from "./components/UI/ParticlesAnimation";
 
 interface Section {
   id: string;

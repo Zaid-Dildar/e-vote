@@ -6,7 +6,10 @@
         "name": "next"
       }
     ],
-    "paths": { "@components/*": ["./components/*"] }
+    "paths": {
+      "@components/*": ["./app/components/*"],
+      "@lib/*": ["./app/lib/*"]
+    }
   },
   "include": [
     "**/*.ts",
