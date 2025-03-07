@@ -24,8 +24,11 @@ export default function RegisterBiometrics() {
     }
 
     // ✅ Check if WebAuthn is supported
-    if (!navigator.credentials?.create) {
-      setMessage("WebAuthn is not supported on this browser.");
+    if (
+      !window.PublicKeyCredential ||
+      typeof window.PublicKeyCredential !== "function"
+    ) {
+      setMessage("WebAuthn is not supported on this device/browser.");
       return;
     }
 

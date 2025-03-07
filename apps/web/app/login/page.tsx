@@ -7,6 +7,15 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "../store/userStore";
 
+// Helper function: Decode Base64URL (Fix for atob error)
+const decodeBase64URL = (input: string): Uint8Array => {
+  const base64 =
+    input.replace(/-/g, "+").replace(/_/g, "/") +
+    "==".slice((input.length + 3) % 4);
+  const raw = atob(base64);
+  return new Uint8Array([...raw].map((c) => c.charCodeAt(0)));
+};
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,17 +47,93 @@ export default function Login() {
         throw new Error(data.message || "Login failed!");
       }
 
-      // Store user details
+      // Store user details in state
       setUser(data.user);
 
-      toast.success("Login successful!");
-      router.push("/user");
+      // ✅ If biometrics are registered, perform biometric verification
+      if (data.user.biometricRegistered) {
+        const biometricSuccess = await verifyBiometrics(data.user.id);
+
+        if (biometricSuccess) {
+          router.push("/user"); // Redirect to dashboard
+          toast.success("Login successful!");
+        } else {
+          toast.error("Biometric verification failed.");
+        }
+      } else {
+        router.push("/register-biometrics"); // Redirect to biometric registration
+        toast.success("Login successful!");
+      }
     } catch (error: unknown) {
       toast.error(
         error instanceof Error ? error.message : "An unknown error occurred."
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const verifyBiometrics = async (userId: string) => {
+    try {
+      // Step 1: Request a challenge from the API
+      const challengeRes = await fetch("/api/auth/biometric/challenge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (!challengeRes.ok)
+        throw new Error("Failed to fetch biometric challenge");
+
+      const { challenge } = await challengeRes.json();
+
+      // Convert the challenge to a Uint8Array
+      const challengeBuffer = decodeBase64URL(challenge);
+
+      // Step 2: Prompt biometric authentication
+      const credential = (await navigator.credentials.get({
+        publicKey: {
+          challenge: challengeBuffer,
+          userVerification: "required",
+        },
+      })) as PublicKeyCredential | null;
+
+      if (!credential) throw new Error("Biometric authentication failed");
+
+      // Extract authentication response data
+      const response = credential.response as AuthenticatorAssertionResponse;
+
+      // Prepare the signed challenge data
+      const signedChallenge = {
+        credentialId: credential.id,
+        authenticatorData: btoa(
+          String.fromCharCode(...new Uint8Array(response.authenticatorData))
+        ),
+        signature: btoa(
+          String.fromCharCode(...new Uint8Array(response.signature))
+        ),
+        clientDataJSON: btoa(
+          String.fromCharCode(...new Uint8Array(response.clientDataJSON))
+        ),
+      };
+
+      // Step 3: Send the signed challenge to the backend for verification
+      const verifyRes = await fetch("/api/auth/biometric/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          credentialId: signedChallenge.credentialId,
+          signedChallenge,
+        }),
+      });
+
+      if (!verifyRes.ok) throw new Error("Biometric verification failed");
+
+      return true; // ✅ Success
+    } catch (error) {
+      console.error("Biometric verification error:", error);
+      return false; // ❌ Failure
     }
   };
 
