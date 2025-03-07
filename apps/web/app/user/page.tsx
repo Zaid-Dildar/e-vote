@@ -1,9 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useUserStore } from "../store/userStore";
 
 const Page = () => {
   const router = useRouter();
+  const { user } = useUserStore();
 
   const handleLogout = async () => {
     try {
@@ -21,7 +23,9 @@ const Page = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-2xl font-bold">Welcome back!</h1>
+      <h1 className="text-2xl font-bold">
+        Welcome back {user?.name ? user.name : "User"}!
+      </h1>
       <button
         onClick={handleLogout}
         className="cursor-pointer mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"

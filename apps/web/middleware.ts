@@ -8,7 +8,7 @@ export function middleware(req: NextRequest) {
   console.log("🚀 Middleware Debug:", { token, role, pathname });
 
   // Skip token check for the login API route
-  if (pathname.startsWith("/api/login")) {
+  if (pathname.startsWith("/api/auth/login")) {
     return NextResponse.next();
   }
 

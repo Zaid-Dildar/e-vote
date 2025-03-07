@@ -5,12 +5,13 @@ import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useUserStore } from "../store/userStore";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const { setUser } = useUserStore();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,7 +24,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -37,14 +38,15 @@ export default function Login() {
         throw new Error(data.message || "Login failed!");
       }
 
+      // Store user details
+      setUser(data.user);
+
       toast.success("Login successful!");
       router.push("/user");
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error("An unknown error occurred.");
-      }
+      toast.error(
+        error instanceof Error ? error.message : "An unknown error occurred."
+      );
     } finally {
       setLoading(false);
     }
@@ -86,6 +88,7 @@ export default function Login() {
           </div>
           <div className="relative">
             <input
+              id="login"
               name="login"
               type="text"
               value={email}
@@ -102,6 +105,7 @@ export default function Login() {
           </div>
           <div className="relative">
             <input
+              id="password"
               name="password"
               type="password"
               value={password}
