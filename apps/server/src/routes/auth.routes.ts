@@ -16,7 +16,7 @@ router.post("/login", login);
 router.post("/biometric/register", protect, biometricRegister);
 
 // Get WebAuthn Challenge (Step 1 of 2FA)
-router.get("/biometric/challenge", protect, getBiometricChallenge);
+router.post("/biometric/challenge", protect, getBiometricChallenge);
 
 // Verify Biometric Authentication (Step 2 of 2FA)
 router.post("/biometric/verify", protect, verifyBiometricAuthController);
