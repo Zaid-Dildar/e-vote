@@ -4,11 +4,11 @@ import { UserRole, UserType } from "../types/User";
 
 const BiometricKeySchema = new Schema(
   {
-    type: { type: String, enum: ["faceId", "fingerprint"], required: true }, // Type of biometric key
-    key: { type: String, required: true }, // The public key
-    deviceId: { type: String, required: true }, // Unique device identifier
+    credentialId: { type: String, required: true }, // Unique credential ID for WebAuthn
+    publicKey: { type: String, required: true }, // Public key associated with WebAuthn
+    deviceId: { type: String, required: true }, // Unique identifier for the device
   },
-  { _id: false } // Prevents mongoose from generating separate _id for each key
+  { _id: false }
 );
 
 const UserSchema = new Schema<UserType>(
@@ -21,7 +21,8 @@ const UserSchema = new Schema<UserType>(
 
     // Biometric Authentication Fields
     biometricRegistered: { type: Boolean, default: false },
-    biometricKeys: [BiometricKeySchema], // Store multiple biometric keys per user
+    biometricKeys: [BiometricKeySchema], // Store multiple biometric credentials
+    biometricChallenge: { type: String, default: null }, // Store the WebAuthn challenge
   },
   { timestamps: true }
 );

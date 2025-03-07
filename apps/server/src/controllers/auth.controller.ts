@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import {
   authenticateUser,
-  authenticateBiometric,
+  generateBiometricChallenge,
   registerBiometric,
+  verifyBiometricAuth,
 } from "../services/auth.service";
 
 export const login = async (req: Request, res: Response) => {
@@ -11,7 +12,7 @@ export const login = async (req: Request, res: Response) => {
     const userData = await authenticateUser(email, password);
 
     res.status(200).json({
-      message: "Login successful",
+      message: "Login successful. Proceed to biometric verification.",
       user: userData,
     });
   } catch (error) {
@@ -21,20 +22,17 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-// Biometric Registration (Face ID or Fingerprint)
-export const biometricRegister = async (req: Request, res: Response) => {
+// Generate WebAuthn Challenge for 2FA
+export const getBiometricChallenge = async (req: Request, res: Response) => {
   try {
-    const { userId, biometricType, biometricKey, deviceId } = req.body; // Added deviceId
-    if (!userId || !biometricType || !biometricKey || !deviceId) {
-      throw new Error(
-        "All fields (userId, biometricType, biometricKey, deviceId) are required"
-      );
-    }
+    const { userId } = req.body;
+    if (!userId) throw new Error("User ID is required");
 
-    await registerBiometric(userId, biometricType, biometricKey, deviceId);
+    const challengeData = await generateBiometricChallenge(userId);
 
     res.status(200).json({
-      message: `Biometric (${biometricType}) registered successfully for device: ${deviceId}`,
+      message: "Biometric challenge generated",
+      challenge: challengeData.challenge,
     });
   } catch (error) {
     res.status(400).json({
@@ -43,25 +41,49 @@ export const biometricRegister = async (req: Request, res: Response) => {
   }
 };
 
-// Biometric Login
-export const biometricLogin = async (req: Request, res: Response) => {
+// Register Biometric (WebAuthn Public Key)
+export const biometricRegister = async (req: Request, res: Response) => {
   try {
-    const { userId, biometricType, biometricKey, deviceId } = req.body; // Added deviceId
-    if (!userId || !biometricType || !biometricKey || !deviceId) {
+    const { userId, credentialId, publicKey, deviceId } = req.body;
+    if (!userId || !credentialId || !publicKey || !deviceId) {
       throw new Error(
-        "All fields (userId, biometricType, biometricKey, deviceId) are required"
+        "All fields (userId, credentialId, publicKey, deviceId) are required"
       );
     }
 
-    const userData = await authenticateBiometric(
+    await registerBiometric(userId, credentialId, publicKey, deviceId);
+
+    res.status(200).json({
+      message: "Biometric registered successfully",
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : "Something went wrong",
+    });
+  }
+};
+
+// Verify WebAuthn Biometric Authentication
+export const verifyBiometricAuthController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { userId, credentialId, signedChallenge } = req.body;
+    if (!userId || !credentialId || !signedChallenge) {
+      throw new Error(
+        "User ID, credential ID, and signed challenge are required"
+      );
+    }
+
+    const userData = await verifyBiometricAuth(
       userId,
-      biometricType,
-      biometricKey,
-      deviceId
+      credentialId,
+      signedChallenge
     );
 
     res.status(200).json({
-      message: "Biometric login successful",
+      message: "Biometric authentication successful",
       user: userData,
     });
   } catch (error) {

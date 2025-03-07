@@ -20,6 +20,7 @@ const createUsers = async () => {
       return await bcrypt.hash(password, salt);
     };
 
+    // Define test users
     const users = [
       {
         name: "Admin User",
@@ -29,10 +30,14 @@ const createUsers = async () => {
         password: await hashPassword("adminPassword123"),
         biometricRegistered: true,
         biometricKeys: [
-          { type: "faceId", key: "admin-face-key", deviceId: "admin-device-1" },
           {
-            type: "fingerprint",
-            key: "admin-fingerprint-key",
+            credentialId: "admin-cred-1",
+            publicKey: "admin-public-key-1",
+            deviceId: "admin-device-1",
+          },
+          {
+            credentialId: "admin-cred-2",
+            publicKey: "admin-public-key-2",
             deviceId: "admin-device-2",
           },
         ],
@@ -46,8 +51,8 @@ const createUsers = async () => {
         biometricRegistered: true,
         biometricKeys: [
           {
-            type: "faceId",
-            key: "commissioner-face-key",
+            credentialId: "commissioner-cred-1",
+            publicKey: "commissioner-public-key-1",
             deviceId: "commissioner-device-1",
           },
         ],
@@ -61,8 +66,8 @@ const createUsers = async () => {
         biometricRegistered: true,
         biometricKeys: [
           {
-            type: "fingerprint",
-            key: "voter1-fingerprint-key",
+            credentialId: "voter1-cred-1",
+            publicKey: "voter1-public-key-1",
             deviceId: "voter1-device-1",
           },
         ],
@@ -73,6 +78,7 @@ const createUsers = async () => {
         department: "CSE",
         role: "voter",
         password: await hashPassword("voterPass2"),
+        biometricRegistered: false, // Ensure consistency
       },
       {
         name: "Test Voter 3",
@@ -83,13 +89,13 @@ const createUsers = async () => {
         biometricRegistered: true,
         biometricKeys: [
           {
-            type: "faceId",
-            key: "voter3-face-key",
+            credentialId: "voter3-cred-1",
+            publicKey: "voter3-public-key-1",
             deviceId: "voter3-device-1",
           },
           {
-            type: "fingerprint",
-            key: "voter3-fingerprint-key",
+            credentialId: "voter3-cred-2",
+            publicKey: "voter3-public-key-2",
             deviceId: "voter3-device-2",
           },
         ],
@@ -103,6 +109,7 @@ const createUsers = async () => {
     console.log(createdUsers); // Log the users to verify insertion
   } catch (error) {
     console.error("❌ Error creating users:", error);
+    process.exit(1); // Exit with failure code
   } finally {
     await mongoose.connection.close();
     console.log("🔌 Disconnected from MongoDB");

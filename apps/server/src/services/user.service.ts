@@ -1,5 +1,6 @@
 import User from "../models/user.model";
-import { UserType, BiometricKey } from "../types/User";
+import { UserType } from "../types/User";
+import { generateChallenge, verifySignature } from "../utils/webauthnUtils";
 
 // Get all users
 export const getAllUsers = async (): Promise<UserType[]> => {
@@ -15,44 +16,28 @@ export const getUserById = async (id: string): Promise<UserType | null> => {
 export const createUser = async (userData: UserType): Promise<UserType> => {
   const user = new User({
     ...userData,
-    biometricRegistered: false, // Ensure new users have no biometrics initially
-    biometricKeys: [], // Use an empty array for multiple biometrics
+    biometricRegistered: false,
+    biometricKeys: [],
   });
   return await user.save();
 };
 
+// Update user
 export const updateUser = async (
   id: string,
   userData: Partial<UserType>
 ): Promise<UserType | null> => {
-  try {
-    // If email is being updated, check if it's already taken
-    if (userData.email) {
-      const existingUser = await User.findOne({ email: userData.email });
-
-      if (existingUser && existingUser._id.toString() !== id) {
-        throw { message: "Email already in use by another user", status: 400 };
-      }
+  if (userData.email) {
+    const existingUser = await User.findOne({ email: userData.email });
+    if (existingUser && existingUser._id.toString() !== id) {
+      throw { message: "Email already in use by another user", status: 400 };
     }
-
-    const updatedUser = await User.findByIdAndUpdate(id, userData, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!updatedUser) {
-      throw { message: "User not found", status: 404 };
-    }
-
-    return updatedUser;
-  } catch (error: any) {
-    // Handle duplicate key error from MongoDB
-    if (error.code === 11000) {
-      throw { message: "Email is already in use", status: 400 };
-    }
-
-    throw error;
   }
+
+  return await User.findByIdAndUpdate(id, userData, {
+    new: true,
+    runValidators: true,
+  });
 };
 
 // Delete user
@@ -60,54 +45,79 @@ export const deleteUser = async (id: string): Promise<UserType | null> => {
   return await User.findByIdAndDelete(id);
 };
 
-// Register biometric data (Supports Multiple Biometrics)
-export const registerBiometric = async (
-  id: string,
-  biometricKey: string,
-  biometricType: "faceId" | "fingerprint",
-  deviceId: string
-): Promise<UserType | null> => {
-  const user = await User.findById(id);
-  if (!user) return null;
+// Generate WebAuthn Challenge for Biometric Authentication
+export const generateBiometricChallenge = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error("User not found");
 
-  // Check if the device already has a registered key
-  const existingIndex = user.biometricKeys.findIndex(
-    (key) => key.deviceId === deviceId
-  );
+  const challenge = generateChallenge(); // Generate WebAuthn challenge
+  user.biometricChallenge = challenge; // Store challenge temporarily
+  await user.save();
 
-  if (existingIndex !== -1) {
-    // Update existing biometric key
-    user.biometricKeys[existingIndex] = {
-      type: biometricType,
-      key: biometricKey,
-      deviceId,
-    };
-  } else {
-    // Add new biometric key
-    user.biometricKeys.push({
-      type: biometricType,
-      key: biometricKey,
-      deviceId,
-    });
-  }
-
-  user.biometricRegistered = true;
-  return await user.save();
+  return { challenge };
 };
 
-// Verify biometric authentication
-export const verifyBiometric = async (
-  id: string,
-  providedBiometricKey: string,
+// Register WebAuthn Public Key (Biometric)
+export const registerBiometric = async (
+  userId: string,
+  credentialId: string,
+  publicKey: string,
   deviceId: string
-): Promise<boolean> => {
-  const user = await User.findById(id);
-  if (!user || !user.biometricRegistered) return false;
+) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error("User not found");
 
-  // Find a matching biometric key for the given device
-  const matchingBiometric = user.biometricKeys.find(
-    (key) => key.deviceId === deviceId && key.key === providedBiometricKey
+  if (!user.biometricKeys) user.biometricKeys = [];
+
+  // Check if the biometric key for the same type and device already exists
+  const existingKeyIndex = user.biometricKeys.findIndex(
+    (key) => key.credentialId === credentialId
   );
 
-  return !!matchingBiometric;
+  if (existingKeyIndex !== -1) {
+    user.biometricKeys[existingKeyIndex].publicKey = publicKey;
+  } else {
+    user.biometricKeys.push({ credentialId, publicKey, deviceId });
+  }
+
+  user.biometricRegistered = user.biometricKeys.length > 0;
+  await user.save();
+};
+
+// Verify WebAuthn Biometric Authentication
+export const verifyBiometricAuth = async (
+  userId: string,
+  credentialId: string,
+  signedChallenge: string
+) => {
+  const user = await User.findById(userId);
+  if (!user || !user.biometricRegistered)
+    throw new Error("Biometric authentication not set up");
+
+  const storedCredential = user.biometricKeys.find(
+    (key) => key.credentialId === credentialId
+  );
+
+  if (!storedCredential) throw new Error("Credential not found");
+
+  // Ensure biometricChallenge is available
+  if (!user.biometricChallenge)
+    throw new Error("No biometric challenge available for verification");
+
+  // Verify the signed challenge
+  const isValid = await verifySignature(
+    storedCredential.publicKey,
+    user.biometricChallenge, // Now we are sure it's not undefined
+    signedChallenge
+  );
+
+  if (!isValid) throw new Error("Invalid biometric authentication");
+
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    department: user.department,
+  };
 };

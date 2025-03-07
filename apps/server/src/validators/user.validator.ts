@@ -14,33 +14,51 @@ const userSchema = Joi.object({
     "any.required": "Email is required",
   }),
 
-  department: Joi.string().required().messages({
-    "any.required": "Department is required",
-  }),
-
   role: Joi.string().valid("admin", "voter", "auditor").required().messages({
     "any.only": "Role must be 'admin', 'voter', or 'auditor'",
     "any.required": "Role is required",
   }),
+
+  department: Joi.string().required().messages({
+    "any.required": "Department is required",
+  }),
+
   password: Joi.string().min(6).max(30).required().messages({
     "string.min": "Password must be at least 6 characters",
     "string.max": "Password must be less than 30 characters",
     "any.required": "Password is required",
   }),
 
-  biometricRegister: Joi.boolean(),
+  biometricRegistered: Joi.boolean().default(false),
 
   biometricKeys: Joi.array()
-    .items(Joi.string())
+    .items(
+      Joi.object({
+        credentialId: Joi.string().required().messages({
+          "any.required": "Credential ID is required",
+        }),
+        publicKey: Joi.string().required().messages({
+          "any.required": "Public key is required",
+        }),
+        deviceId: Joi.string().required().messages({
+          "any.required": "Device ID is required",
+        }),
+      })
+    )
     .when("biometricRegistered", {
       is: true,
       then: Joi.required(),
       otherwise: Joi.forbidden(),
     })
     .messages({
-      "array.base": "Biometric keys must be an array of strings",
-      "any.required": "Biometric keys are required when hasBiometrics is true",
+      "array.base": "Biometric keys must be an array of objects",
+      "any.required":
+        "Biometric keys are required when biometricRegistered is true",
     }),
+
+  biometricChallenge: Joi.string().allow(null).optional().messages({
+    "string.base": "Biometric challenge must be a string",
+  }),
 });
 
 export const validateUser = (

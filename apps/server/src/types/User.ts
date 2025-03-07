@@ -6,8 +6,8 @@ export enum UserRole {
 
 // Define a type for biometric keys
 export interface BiometricKey {
-  type: "faceId" | "fingerprint"; // Biometric type
-  key: string; // Public key for authentication
+  credentialId: string; // Biometric type
+  publicKey: string; // Public key for authentication
   deviceId: string; // Unique device identifier
 }
 
@@ -21,6 +21,7 @@ export interface UserType {
   password: string;
   biometricRegistered: boolean; // Has the user enrolled biometrics?
   biometricKeys: BiometricKey[]; // Array of biometric keys for multiple devices
+  biometricChallenge?: string; // Store challenge for WebAuthn authentication
   createdAt?: Date;
   updatedAt?: Date;
 }
