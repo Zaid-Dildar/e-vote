@@ -5,7 +5,7 @@ import User from "../models/user.model";
 
 dotenv.config();
 
-const createUser = async () => {
+const createUsers = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI as string);
     console.log("✅ Connected to MongoDB");
@@ -22,30 +22,77 @@ const createUser = async () => {
 
     const users = [
       {
-        name: "Test User 1",
-        email: "test2@example.com",
+        name: "Admin User",
+        email: "admin@example.com",
         department: "CSE",
-        role: "voter",
-        password: await hashPassword("password1234"), // Hashing manually
+        role: "admin",
+        password: await hashPassword("adminPassword123"),
         biometricRegistered: true,
-        faceIdKey: "sample-face-id-key",
-        fingerprintKey: "sample-fingerprint-key",
+        biometricKeys: [
+          { type: "faceId", key: "admin-face-key", deviceId: "admin-device-1" },
+          {
+            type: "fingerprint",
+            key: "admin-fingerprint-key",
+            deviceId: "admin-device-2",
+          },
+        ],
       },
       {
-        name: "Test User 2",
-        email: "test3@example.com",
+        name: "Election Commissioner",
+        email: "commissioner@example.com",
         department: "CSE",
-        role: "voter",
-        password: await hashPassword("password12345"),
+        role: "auditor",
+        password: await hashPassword("commissionerPass"),
+        biometricRegistered: true,
+        biometricKeys: [
+          {
+            type: "faceId",
+            key: "commissioner-face-key",
+            deviceId: "commissioner-device-1",
+          },
+        ],
       },
       {
-        name: "Test User 3",
-        email: "test4@example.com",
+        name: "Test Voter 1",
+        email: "voter1@example.com",
         department: "CSE",
         role: "voter",
-        password: await hashPassword("password123456"),
+        password: await hashPassword("voterPass1"),
         biometricRegistered: true,
-        faceIdKey: "sample-face-id-key",
+        biometricKeys: [
+          {
+            type: "fingerprint",
+            key: "voter1-fingerprint-key",
+            deviceId: "voter1-device-1",
+          },
+        ],
+      },
+      {
+        name: "Test Voter 2",
+        email: "voter2@example.com",
+        department: "CSE",
+        role: "voter",
+        password: await hashPassword("voterPass2"),
+      },
+      {
+        name: "Test Voter 3",
+        email: "voter3@example.com",
+        department: "CSE",
+        role: "voter",
+        password: await hashPassword("voterPass3"),
+        biometricRegistered: true,
+        biometricKeys: [
+          {
+            type: "faceId",
+            key: "voter3-face-key",
+            deviceId: "voter3-device-1",
+          },
+          {
+            type: "fingerprint",
+            key: "voter3-fingerprint-key",
+            deviceId: "voter3-device-2",
+          },
+        ],
       },
     ];
 
@@ -62,4 +109,4 @@ const createUser = async () => {
   }
 };
 
-createUser();
+createUsers();

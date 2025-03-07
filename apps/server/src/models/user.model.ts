@@ -2,6 +2,15 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import { UserRole, UserType } from "../types/User";
 
+const BiometricKeySchema = new Schema(
+  {
+    type: { type: String, enum: ["faceId", "fingerprint"], required: true }, // Type of biometric key
+    key: { type: String, required: true }, // The public key
+    deviceId: { type: String, required: true }, // Unique device identifier
+  },
+  { _id: false } // Prevents mongoose from generating separate _id for each key
+);
+
 const UserSchema = new Schema<UserType>(
   {
     name: { type: String, required: true },
@@ -12,12 +21,12 @@ const UserSchema = new Schema<UserType>(
 
     // Biometric Authentication Fields
     biometricRegistered: { type: Boolean, default: false },
-    faceIdKey: { type: String, default: null }, // Store Face ID biometric key
-    fingerprintKey: { type: String, default: null }, // Store Fingerprint biometric key
+    biometricKeys: [BiometricKeySchema], // Store multiple biometric keys per user
   },
   { timestamps: true }
 );
 
+// Hash password before saving
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);

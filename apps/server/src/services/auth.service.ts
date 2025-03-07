@@ -10,10 +10,7 @@ export const authenticateUser = async (email: string, password: string) => {
   if (!user) throw new Error("Invalid email or password");
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    console.log("no match");
-    throw new Error("Invalid email or password");
-  }
+  if (!isMatch) throw new Error("Invalid email or password");
 
   return {
     name: user.name,
@@ -25,59 +22,65 @@ export const authenticateUser = async (email: string, password: string) => {
   };
 };
 
-// Register biometric (Face ID or Fingerprint)
+// Register biometric key (Face ID or Fingerprint)
 export const registerBiometric = async (
   userId: string,
   biometricType: "faceId" | "fingerprint",
-  biometricKey: string
+  biometricKey: string,
+  deviceId: string
 ) => {
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found");
 
-  if (biometricType === "faceId") {
-    user.faceIdKey = biometricKey;
-  } else if (biometricType === "fingerprint") {
-    user.fingerprintKey = biometricKey;
+  // Ensure biometricKeys array exists
+  if (!user.biometricKeys) user.biometricKeys = [];
+
+  // Check if the biometric key for the same type and device already exists
+  const existingKeyIndex = user.biometricKeys.findIndex(
+    (key) => key.type === biometricType && key.deviceId === deviceId
+  );
+
+  if (existingKeyIndex !== -1) {
+    // Update the existing key for the device
+    user.biometricKeys[existingKeyIndex].key = biometricKey;
   } else {
-    throw new Error("Invalid biometric type");
+    // Add a new biometric key
+    user.biometricKeys.push({
+      type: biometricType,
+      key: biometricKey,
+      deviceId,
+    });
   }
 
-  user.biometricRegistered = !!(user.faceIdKey || user.fingerprintKey);
+  // Mark user as biometrically registered
+  user.biometricRegistered = user.biometricKeys.length > 0;
   await user.save();
 };
 
-// Biometric Authentication (Face ID or Fingerprint)
+// Authenticate using biometric key (Face ID or Fingerprint)
 export const authenticateBiometric = async (
-  id: string,
+  userId: string,
   biometricType: "faceId" | "fingerprint",
-  biometricKey: string
+  biometricKey: string,
+  deviceId: string
 ) => {
-  const user: UserType | null = await User.findById(id);
-
-  if (!user || !user.biometricRegistered) {
+  const user = await User.findById(userId);
+  if (!user || !user.biometricRegistered)
     throw new Error("Biometric authentication not set up");
-  }
 
-  if (biometricType === "faceId" && user.faceIdKey === biometricKey) {
-    return {
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      department: user.department,
-      token: generateToken(user._id),
-    };
-  } else if (
-    biometricType === "fingerprint" &&
-    user.fingerprintKey === biometricKey
-  ) {
-    return {
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      department: user.department,
-      token: generateToken(user._id),
-    };
-  } else {
+  // Find the biometric key matching the type and device
+  const storedKey = user.biometricKeys.find(
+    (key) => key.type === biometricType && key.deviceId === deviceId
+  );
+
+  if (!storedKey || storedKey.key !== biometricKey)
     throw new Error("Invalid biometric credentials");
-  }
+
+  return {
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    department: user.department,
+    token: generateToken(user._id),
+  };
 };

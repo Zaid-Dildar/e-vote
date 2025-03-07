@@ -15,20 +15,26 @@ export const login = async (req: Request, res: Response) => {
       user: userData,
     });
   } catch (error) {
-    const errMessage =
-      error instanceof Error ? error.message : "Something went wrong";
-    res.status(401).json({ message: errMessage });
+    res.status(401).json({
+      message: error instanceof Error ? error.message : "Something went wrong",
+    });
   }
 };
 
 // Biometric Registration (Face ID or Fingerprint)
 export const biometricRegister = async (req: Request, res: Response) => {
   try {
-    const { userId, biometricType, biometricKey } = req.body; // biometricType = "faceId" | "fingerprint"
-    await registerBiometric(userId, biometricType, biometricKey);
+    const { userId, biometricType, biometricKey, deviceId } = req.body; // Added deviceId
+    if (!userId || !biometricType || !biometricKey || !deviceId) {
+      throw new Error(
+        "All fields (userId, biometricType, biometricKey, deviceId) are required"
+      );
+    }
+
+    await registerBiometric(userId, biometricType, biometricKey, deviceId);
 
     res.status(200).json({
-      message: `Biometric (${biometricType}) registered successfully`,
+      message: `Biometric (${biometricType}) registered successfully for device: ${deviceId}`,
     });
   } catch (error) {
     res.status(400).json({
@@ -40,11 +46,18 @@ export const biometricRegister = async (req: Request, res: Response) => {
 // Biometric Login
 export const biometricLogin = async (req: Request, res: Response) => {
   try {
-    const { userId, biometricType, biometricKey } = req.body;
+    const { userId, biometricType, biometricKey, deviceId } = req.body; // Added deviceId
+    if (!userId || !biometricType || !biometricKey || !deviceId) {
+      throw new Error(
+        "All fields (userId, biometricType, biometricKey, deviceId) are required"
+      );
+    }
+
     const userData = await authenticateBiometric(
       userId,
       biometricType,
-      biometricKey
+      biometricKey,
+      deviceId
     );
 
     res.status(200).json({

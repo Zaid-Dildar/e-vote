@@ -4,6 +4,13 @@ export enum UserRole {
   AUDITOR = "auditor",
 }
 
+// Define a type for biometric keys
+export interface BiometricKey {
+  type: "faceId" | "fingerprint"; // Biometric type
+  key: string; // Public key for authentication
+  deviceId: string; // Unique device identifier
+}
+
 // Define user schema type
 export interface UserType {
   _id: string;
@@ -13,8 +20,7 @@ export interface UserType {
   department: string;
   password: string;
   biometricRegistered: boolean; // Has the user enrolled biometrics?
-  faceIdKey?: string | null; // Stores the biometric public key or reference
-  fingerprintKey?: string | null; // Stores the biometric public key or reference
+  biometricKeys: BiometricKey[]; // Array of biometric keys for multiple devices
   createdAt?: Date;
   updatedAt?: Date;
 }

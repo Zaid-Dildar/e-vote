@@ -44,16 +44,22 @@ export const protect = async (
 // Middleware for Role-Based Access Control (RBAC)
 export const authorizeRoles =
   (...roles: string[]) =>
-  (req: AuthRequest, res: Response, next: NextFunction) => {
+  (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({ message: "Not authorized, user not found" });
       return;
     }
 
-    if (!roles.includes(req.user.role)) {
+    const isSelf = req.params.id && req.user._id.toString() === req.params.id;
+
+    if (isSelf) {
+      return next();
+    }
+
+    if (roles.length > 0 && !roles.includes(req.user.role)) {
       res.status(403).json({ message: "Access denied" });
       return;
     }
 
-    next(); // Allow access to route
+    next();
   };
