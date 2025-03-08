@@ -9,12 +9,7 @@ import {
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
 import type { AuthenticatorTransportFuture } from "@simplewebauthn/types";
-
-export const isoBase64URL = {
-  encode: (buffer: Buffer) => base64url(buffer),
-  decode: (base64urlString: string) =>
-    Buffer.from(base64url.toBuffer(base64urlString)),
-};
+import { isoBase64URL } from "@simplewebauthn/server/helpers";
 
 // **1. Standard Email & Password Authentication**
 export const authenticateUser = async (email: string, password: string) => {
@@ -29,6 +24,8 @@ export const authenticateUser = async (email: string, password: string) => {
     name: user.name,
     email: user.email,
     role: user.role,
+    department: user.department,
+    biometricRegistered: user.biometricRegistered,
     token: generateToken(user._id),
   };
 };
@@ -41,7 +38,7 @@ export const getRegistrationOptions = async (userId: string) => {
   const options = await generateRegistrationOptions({
     rpName: "E-Vote System",
     rpID: process.env.RP_ID || "localhost",
-    userID: user.id,
+    userID: new TextEncoder().encode(user.id),
     userName: user.email,
     attestationType: "none",
     authenticatorSelection: {
@@ -49,7 +46,7 @@ export const getRegistrationOptions = async (userId: string) => {
       userVerification: "preferred",
     },
     excludeCredentials: user.biometricKeys.map((key) => ({
-      id: isoBase64URL.encode(Buffer.from(key.credentialId, "base64")), // ✅ Convert Buffer to Base64URL string
+      id: key.credentialId, // ✅ Convert Base64URL string to Buffer
       type: "public-key",
     })),
   });
@@ -71,7 +68,7 @@ export const verifyBiometricRegistration = async (
   if (!expectedChallenge) throw new Error("Challenge not found");
 
   const verification = await verifyRegistrationResponse({
-    response: credential.response, // ✅ Corrected: Pass response instead of credential
+    response: credential, // Ensure this contains `.id`, `.rawId`, and `.response`
     expectedChallenge,
     expectedRPID: process.env.RP_ID || "localhost",
     expectedOrigin: process.env.ORIGIN || "http://localhost:3000",
@@ -94,10 +91,11 @@ export const verifyBiometricRegistration = async (
   if (!credentialID || !credentialPublicKey)
     throw new Error("Invalid credential data");
 
-  const normalizedCredentialId = isoBase64URL.encode(Buffer.from(credentialID));
-  const encodedPublicKey = isoBase64URL.encode(
-    Buffer.from(credentialPublicKey)
+  // Encode credential ID and public key
+  const normalizedCredentialId = isoBase64URL.fromBuffer(
+    new Uint8Array(Buffer.from(credentialID, "base64"))
   );
+  const encodedPublicKey = isoBase64URL.fromBuffer(credentialPublicKey);
 
   user.biometricKeys.push({
     credentialId: normalizedCredentialId,
@@ -123,7 +121,7 @@ export const getAuthenticationOptions = async (userId: string) => {
     // ✅ Await the function
     rpID: process.env.RP_ID || "localhost",
     allowCredentials: user.biometricKeys.map((key) => ({
-      id: base64url.encode(Buffer.from(key.credentialId, "base64")), // ✅ Convert Buffer to Base64URL string
+      id: key.credentialId, // ✅ Convert Buffer to Base64URL string
       transports: key.transports as AuthenticatorTransportFuture[], // ✅ Ensure correct type
     })),
     userVerification: "preferred",
@@ -131,6 +129,7 @@ export const getAuthenticationOptions = async (userId: string) => {
 
   user.biometricChallenge = options.challenge;
   await user.save(); // ✅ Store challenge properly
+  console.log("options", options);
   return options;
 };
 

@@ -60,6 +60,7 @@ export const verifyRegistrationResponseController = async (
     const verification = await verifyBiometricRegistration(userId, credential);
     res.status(verification.success ? 200 : 400).json(verification);
   } catch (error) {
+    console.log(error);
     res.status(400).json({
       message: error instanceof Error ? error.message : "Something went wrong",
     });
