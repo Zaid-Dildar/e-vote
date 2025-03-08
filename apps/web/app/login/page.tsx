@@ -6,15 +6,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "../store/userStore";
-
-// Helper function: Decode Base64URL (Fix for atob error)
-const decodeBase64URL = (input: string): Uint8Array => {
-  const base64 =
-    input.replace(/-/g, "+").replace(/_/g, "/") +
-    "==".slice((input.length + 3) % 4);
-  const raw = atob(base64);
-  return new Uint8Array([...raw].map((c) => c.charCodeAt(0)));
-};
+import { startAuthentication } from "@simplewebauthn/browser";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -33,6 +25,7 @@ export default function Login() {
     setLoading(true);
 
     try {
+      // Step 1: Perform standard login
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -50,7 +43,7 @@ export default function Login() {
       // Store user details in state
       setUser(data.user);
 
-      // ✅ If biometrics are registered, perform biometric verification
+      // Step 2: If biometrics are registered, perform biometric verification
       if (data.user.biometricRegistered) {
         const biometricSuccess = await verifyBiometrics(data.user.id);
 
@@ -75,65 +68,39 @@ export default function Login() {
 
   const verifyBiometrics = async (userId: string) => {
     try {
-      // Step 1: Request a challenge from the API
-      const challengeRes = await fetch("/api/auth/biometric/challenge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
+      if (!userId) return false;
+
+      // Step 1: Request authentication options
+      const challengeRes = await fetch(
+        "/api/auth/biometric/authenticate-options",
+        { method: "GET" }
+      );
+
+      if (!challengeRes.ok) return false;
+
+      const options = await challengeRes.json();
+
+      // Step 2: Start WebAuthn authentication
+      const authenticationResponse = await startAuthentication({
+        optionsJSON: options,
       });
 
-      if (!challengeRes.ok)
-        throw new Error("Failed to fetch biometric challenge");
-
-      const { challenge } = await challengeRes.json();
-
-      // Convert the challenge to a Uint8Array
-      const challengeBuffer = decodeBase64URL(challenge);
-
-      // Step 2: Prompt biometric authentication
-      const credential = (await navigator.credentials.get({
-        publicKey: {
-          challenge: challengeBuffer,
-          userVerification: "required",
-        },
-      })) as PublicKeyCredential | null;
-
-      if (!credential) throw new Error("Biometric authentication failed");
-
-      // Extract authentication response data
-      const response = credential.response as AuthenticatorAssertionResponse;
-
-      // Prepare the signed challenge data
-      const signedChallenge = {
-        credentialId: credential.id,
-        authenticatorData: btoa(
-          String.fromCharCode(...new Uint8Array(response.authenticatorData))
-        ),
-        signature: btoa(
-          String.fromCharCode(...new Uint8Array(response.signature))
-        ),
-        clientDataJSON: btoa(
-          String.fromCharCode(...new Uint8Array(response.clientDataJSON))
-        ),
-      };
-
-      // Step 3: Send the signed challenge to the backend for verification
-      const verifyRes = await fetch("/api/auth/biometric/verify", {
+      // Step 3: Send authentication response to the backend for verification
+      const verifyRes = await fetch("/api/auth/biometric/authenticate-verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          credentialId: signedChallenge.credentialId,
-          signedChallenge,
+          credential: authenticationResponse,
         }),
       });
 
-      if (!verifyRes.ok) throw new Error("Biometric verification failed");
+      if (!verifyRes.ok) return false;
 
-      return true; // ✅ Success
-    } catch (error) {
-      console.error("Biometric verification error:", error);
-      return false; // ❌ Failure
+      const verifyData = await verifyRes.json();
+      return verifyData.success;
+    } catch {
+      return false;
     }
   };
 

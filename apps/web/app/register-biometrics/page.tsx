@@ -1,5 +1,6 @@
 "use client";
 
+import { startRegistration } from "@simplewebauthn/browser";
 import { useState } from "react";
 import { useUserStore } from "../store/userStore";
 
@@ -8,103 +9,44 @@ export default function RegisterBiometrics() {
   const { user } = useUserStore();
   const userId = user?.id;
 
-  // Helper function: Decode Base64URL (Fix for atob error)
-  const decodeBase64URL = (input: string): Uint8Array => {
-    const base64 =
-      input.replace(/-/g, "+").replace(/_/g, "/") +
-      "==".slice((input.length + 3) % 4);
-    const raw = atob(base64);
-    return new Uint8Array([...raw].map((c) => c.charCodeAt(0)));
-  };
-
   const handleRegister = async () => {
     if (!userId) {
       setMessage("User ID is missing!");
       return;
     }
 
-    // ✅ Check if WebAuthn is supported
-    if (
-      !window.PublicKeyCredential ||
-      typeof window.PublicKeyCredential !== "function"
-    ) {
-      setMessage("WebAuthn is not supported on this device/browser.");
-      return;
-    }
-
-    setMessage("Requesting biometric challenge...");
+    setMessage("Fetching registration options...");
 
     try {
-      // Step 1: Request a challenge from Next.js API route
-      const challengeRes = await fetch("/api/auth/biometric/challenge", {
-        method: "POST",
-        body: JSON.stringify({ userId }),
-        headers: { "Content-Type": "application/json" },
+      // Step 1: Get registration options from backend
+      const optionsRes = await fetch("/api/auth/biometric/register-options", {
+        method: "GET",
       });
 
-      if (!challengeRes.ok) throw new Error("Failed to get challenge");
+      if (!optionsRes.ok)
+        throw new Error("Failed to fetch registration options");
 
-      const { challenge } = await challengeRes.json();
-      console.log("Challenge received:", challenge);
+      const options = await optionsRes.json();
 
-      // Convert challenge to Uint8Array (Base64URL decoding fix)
-      const challengeBuffer = decodeBase64URL(challenge);
+      // Step 2: Start WebAuthn Registration
+      const credential = await startRegistration({ optionsJSON: options });
 
-      // Convert userId to Uint8Array
-      const encoder = new TextEncoder();
-      const userIdBuffer = encoder.encode(userId);
+      // Step 3: Send the registration response to backend
+      setMessage("Verifying registration...");
 
-      // Step 2: Create WebAuthn credentials
-      const credential = (await navigator.credentials.create({
-        publicKey: {
-          challenge: challengeBuffer,
-          rp: { name: "E-Vote" },
-          user: {
-            id: userIdBuffer,
-            name: user.email,
-            displayName: user.name,
-          },
-          pubKeyCredParams: [
-            { type: "public-key", alg: -7 }, // ES256 (Elliptic Curve)
-            { type: "public-key", alg: -257 }, // RS256 (RSA)
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform", // Forces built-in device authenticator
-            residentKey: "required", // Ensures key is stored on device
-            requireResidentKey: true, // Forces biometrics or stored passkey
-            userVerification: "required", // Ensures Face ID / Fingerprint
-          },
-          timeout: 60000,
-        },
-      })) as PublicKeyCredential | null;
-
-      if (!credential) throw new Error("Biometric registration failed");
-
-      console.log("Credential received:", credential);
-
-      // Extract credential details
-      const credentialData = {
-        credentialId: credential.id,
-        publicKey: btoa(
-          String.fromCharCode(...new Uint8Array(credential.rawId))
-        ),
-        deviceId: "web-device",
-      };
-
-      // Step 3: Send credential data to Next.js API route
-      setMessage("Registering biometrics...");
-
-      const res = await fetch("/api/auth/biometric/register", {
+      const verifyRes = await fetch("/api/auth/biometric/register-verify", {
         method: "POST",
-        body: JSON.stringify({ userId, ...credentialData }),
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          credential,
+        }),
       });
 
-      if (!res.ok) throw new Error("Failed to register biometrics");
+      if (!verifyRes.ok) throw new Error("Failed to verify registration");
 
       setMessage("Biometric registration successful!");
     } catch (error) {
-      console.error("Error:", error);
       setMessage(
         `Error: ${error instanceof Error ? error.message : "Unknown error"}`
       );
