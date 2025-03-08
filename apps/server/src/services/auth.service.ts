@@ -43,8 +43,10 @@ export const getRegistrationOptions = async (userId: string) => {
     attestationType: "none",
     authenticatorSelection: {
       residentKey: "preferred",
-      userVerification: "preferred",
+      userVerification: "required",
+      authenticatorAttachment: "platform",
     },
+    preferredAuthenticatorType: "remoteDevice",
     excludeCredentials: user.biometricKeys.map((key) => ({
       id: key.credentialId, // ✅ Convert Base64URL string to Buffer
       type: "public-key",
