@@ -1,9 +1,10 @@
 import { Router } from "express";
 import {
   login,
-  biometricRegister,
-  getBiometricChallenge,
-  verifyBiometricAuthController,
+  generateRegistrationOptionsController,
+  verifyRegistrationResponseController,
+  generateAuthenticationOptionsController,
+  verifyAuthenticationResponseController,
 } from "../controllers/auth.controller";
 import { protect } from "../middleware/authMiddleware";
 
@@ -12,13 +13,32 @@ const router = Router();
 // Standard Login
 router.post("/login", login);
 
-// Biometric Registration (stores public key)
-router.post("/biometric/register", protect, biometricRegister);
+// Generate WebAuthn Registration Options (Step 1 of Registration)
+router.get(
+  "/biometric/register/options",
+  protect,
+  generateRegistrationOptionsController
+);
 
-// Get WebAuthn Challenge (Step 1 of 2FA)
-router.post("/biometric/challenge", protect, getBiometricChallenge);
+// Verify WebAuthn Registration Response (Step 2 of Registration)
+router.post(
+  "/biometric/register/verify",
+  protect,
+  verifyRegistrationResponseController
+);
 
-// Verify Biometric Authentication (Step 2 of 2FA)
-router.post("/biometric/verify", protect, verifyBiometricAuthController);
+// Generate WebAuthn Authentication Options (Step 1 of Authentication)
+router.get(
+  "/biometric/authenticate/options",
+  protect,
+  generateAuthenticationOptionsController
+);
+
+// Verify WebAuthn Authentication Response (Step 2 of Authentication)
+router.post(
+  "/biometric/authenticate/verify",
+  protect,
+  verifyAuthenticationResponseController
+);
 
 export default router;

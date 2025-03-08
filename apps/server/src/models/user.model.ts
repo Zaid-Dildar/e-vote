@@ -4,9 +4,11 @@ import { UserRole, UserType } from "../types/User";
 
 const BiometricKeySchema = new Schema(
   {
-    credentialId: { type: String, required: true }, // Unique credential ID for WebAuthn
-    publicKey: { type: String, required: true }, // Public key associated with WebAuthn
-    deviceId: { type: String, required: true }, // Unique identifier for the device
+    credentialId: { type: String, required: true },
+    publicKey: { type: String, required: true },
+    deviceId: { type: String, required: true },
+    counter: { type: Number, required: true, default: 0 }, // ✅ Add counter
+    transports: { type: [String], required: false, default: [] }, // ✅ Add transports
   },
   { _id: false }
 );

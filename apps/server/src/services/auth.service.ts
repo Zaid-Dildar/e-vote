@@ -1,13 +1,24 @@
 import bcrypt from "bcryptjs";
+import base64url from "base64url";
 import User from "../models/user.model";
-import { UserType } from "../types/User";
 import generateToken from "../utils/generateToken";
-import { generateChallenge, verifySignature } from "../utils/webauthnUtils";
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} from "@simplewebauthn/server";
+import type { AuthenticatorTransportFuture } from "@simplewebauthn/types";
 
-// Standard Login (Email & Password)
+export const isoBase64URL = {
+  encode: (buffer: Buffer) => base64url(buffer),
+  decode: (base64urlString: string) =>
+    Buffer.from(base64url.toBuffer(base64urlString)),
+};
+
+// **1. Standard Email & Password Authentication**
 export const authenticateUser = async (email: string, password: string) => {
-  const user: UserType | null = await User.findOne({ email });
-
+  const user = await User.findOne({ email });
   if (!user) throw new Error("Invalid email or password");
 
   const isMatch = await bcrypt.compare(password, user.password);
@@ -18,91 +29,158 @@ export const authenticateUser = async (email: string, password: string) => {
     name: user.name,
     email: user.email,
     role: user.role,
-    department: user.department,
-    biometricRegistered: user.biometricRegistered,
     token: generateToken(user._id),
   };
 };
 
-// Generate a WebAuthn Challenge for Biometric Authentication
-export const generateBiometricChallenge = async (userId: string) => {
+// **2. Generate Biometric Registration Options**
+export const getRegistrationOptions = async (userId: string) => {
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found");
 
-  const challenge = generateChallenge(); // Generate WebAuthn challenge
-  user.biometricChallenge = challenge; // Store challenge temporarily
-  await user.save();
+  const options = await generateRegistrationOptions({
+    rpName: "E-Vote System",
+    rpID: process.env.RP_ID || "localhost",
+    userID: user.id,
+    userName: user.email,
+    attestationType: "none",
+    authenticatorSelection: {
+      residentKey: "preferred",
+      userVerification: "preferred",
+    },
+    excludeCredentials: user.biometricKeys.map((key) => ({
+      id: isoBase64URL.encode(Buffer.from(key.credentialId, "base64")), // ✅ Convert Buffer to Base64URL string
+      type: "public-key",
+    })),
+  });
 
-  return { challenge };
+  user.biometricChallenge = options.challenge;
+  await user.save(); // ✅ Store challenge
+  return options;
 };
 
-// Register WebAuthn Public Key (Biometric)
-export const registerBiometric = async (
+// **3. Verify Biometric Registration Response**
+export const verifyBiometricRegistration = async (
   userId: string,
-  credentialId: string,
-  publicKey: string,
-  deviceId: string
+  credential: any
 ) => {
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found");
 
-  if (!user.biometricKeys) user.biometricKeys = [];
+  const expectedChallenge = user.biometricChallenge;
+  if (!expectedChallenge) throw new Error("Challenge not found");
 
-  // Check if the biometric key for the same credential already exists
-  const existingKeyIndex = user.biometricKeys.findIndex(
-    (key) => key.credentialId === credentialId
+  const verification = await verifyRegistrationResponse({
+    response: credential.response, // ✅ Corrected: Pass response instead of credential
+    expectedChallenge,
+    expectedRPID: process.env.RP_ID || "localhost",
+    expectedOrigin: process.env.ORIGIN || "http://localhost:3000",
+    requireUserVerification: true,
+  });
+
+  if (!verification.verified) throw new Error("Verification failed");
+
+  const registrationInfo = verification.registrationInfo;
+  if (!registrationInfo) throw new Error("Missing registration info"); // ✅ Ensure registrationInfo exists
+
+  const { credential: registrationCredential, aaguid } = registrationInfo;
+  if (!registrationCredential) throw new Error("Missing credential data");
+
+  const credentialID = registrationCredential.id;
+  const credentialPublicKey = registrationCredential.publicKey;
+  const counter = registrationCredential.counter; // ✅ Corrected: Use signCount instead of counter
+  const deviceId = aaguid || "unknown-device"; // ✅ Use aaguid as deviceId
+
+  if (!credentialID || !credentialPublicKey)
+    throw new Error("Invalid credential data");
+
+  const normalizedCredentialId = isoBase64URL.encode(Buffer.from(credentialID));
+  const encodedPublicKey = isoBase64URL.encode(
+    Buffer.from(credentialPublicKey)
   );
 
-  if (existingKeyIndex !== -1) {
-    user.biometricKeys[existingKeyIndex].publicKey = publicKey; // Update existing key
-  } else {
-    user.biometricKeys.push({ credentialId, publicKey, deviceId });
-  }
+  user.biometricKeys.push({
+    credentialId: normalizedCredentialId,
+    publicKey: encodedPublicKey,
+    counter,
+    deviceId, // ✅ Include deviceId
+  });
 
-  user.biometricRegistered = user.biometricKeys.length > 0;
+  user.biometricRegistered = true;
   await user.save();
-
-  return { message: "Biometric credentials registered successfully" };
-};
-
-// Verify WebAuthn Response (Step 2 of 2FA)
-export const verifyBiometricAuth = async (
-  userId: string,
-  credentialId: string,
-  signedChallenge: string
-) => {
-  const user = await User.findById(userId);
-  if (!user || !user.biometricRegistered)
-    throw new Error("Biometric authentication not set up");
-
-  if (!user.biometricChallenge)
-    throw new Error("No biometric challenge available for verification");
-
-  const storedCredential = user.biometricKeys.find(
-    (key) => key.credentialId === credentialId
-  );
-
-  if (!storedCredential) throw new Error("Credential not found");
-
-  // Verify the signed challenge
-  const isValid = await verifySignature(
-    storedCredential.publicKey,
-    user.biometricChallenge,
-    signedChallenge
-  );
-
-  if (!isValid) throw new Error("Invalid biometric authentication");
-
-  // Clear the challenge after successful authentication
   user.biometricChallenge = undefined;
   await user.save();
 
-  return {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    department: user.department,
-    token: generateToken(user._id),
-  };
+  return { success: true, message: "Biometric registered successfully" };
+};
+
+// **4. Generate Biometric Authentication Options**
+export const getAuthenticationOptions = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user || !user.biometricRegistered) throw new Error("User not found");
+
+  const options = await generateAuthenticationOptions({
+    // ✅ Await the function
+    rpID: process.env.RP_ID || "localhost",
+    allowCredentials: user.biometricKeys.map((key) => ({
+      id: base64url.encode(Buffer.from(key.credentialId, "base64")), // ✅ Convert Buffer to Base64URL string
+      transports: key.transports as AuthenticatorTransportFuture[], // ✅ Ensure correct type
+    })),
+    userVerification: "preferred",
+  });
+
+  user.biometricChallenge = options.challenge;
+  await user.save(); // ✅ Store challenge properly
+  return options;
+};
+
+// **5. Verify Biometric Authentication**
+export const verifyBiometricAuth = async (userId: string, credential: any) => {
+  const user = await User.findById(userId);
+  if (!user || !user.biometricRegistered) {
+    return {
+      success: false,
+      error: "User not found or biometrics not registered",
+    };
+  }
+
+  // Find the stored credential (biometric key) for this user
+  const storedCredential = user.biometricKeys.find(
+    (key) => key.credentialId === credential.id
+  );
+
+  if (!storedCredential) {
+    return { success: false, error: "Credential not found" };
+  }
+
+  try {
+    const verification = await verifyAuthenticationResponse({
+      response: credential,
+      expectedChallenge: user.biometricChallenge ?? "",
+      expectedOrigin: process.env.ORIGIN || "http://localhost:3000",
+      expectedRPID: process.env.RP_ID || "localhost",
+      credential: {
+        id: storedCredential.credentialId,
+        publicKey: Buffer.from(storedCredential.publicKey, "base64"),
+        counter: storedCredential.counter,
+        transports:
+          storedCredential.transports as AuthenticatorTransportFuture[],
+      },
+    });
+
+    if (!verification.verified) {
+      return { success: false, error: "Authentication failed" };
+    }
+
+    // Update the counter in the database
+    storedCredential.counter = verification.authenticationInfo.newCounter;
+    await user.save();
+
+    return { success: true, user }; // ✅ Return success with user data
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Verification error",
+    };
+  }
 };

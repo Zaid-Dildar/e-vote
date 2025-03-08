@@ -43,6 +43,12 @@ const userSchema = Joi.object({
         deviceId: Joi.string().required().messages({
           "any.required": "Device ID is required",
         }),
+        counter: Joi.number().required().messages({
+          "any.required": "Counter is required",
+        }),
+        transports: Joi.array().items(Joi.string()).optional().messages({
+          "array.base": "Transports must be an array of strings",
+        }), // ✅ Add transports validation
       })
     )
     .when("biometricRegistered", {

@@ -1,11 +1,17 @@
 import { Request, Response } from "express";
 import {
   authenticateUser,
-  generateBiometricChallenge,
-  registerBiometric,
+  getRegistrationOptions,
+  verifyBiometricRegistration,
+  getAuthenticationOptions,
   verifyBiometricAuth,
 } from "../services/auth.service";
 
+interface AuthenticatedRequest extends Request {
+  user?: { id: string }; // Adjust this type based on your actual user object
+}
+
+// 1. Email & Password Login
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -22,18 +28,17 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-// Generate WebAuthn Challenge for 2FA
-export const getBiometricChallenge = async (req: Request, res: Response) => {
+// 2. Generate WebAuthn Registration Options
+export const generateRegistrationOptionsController = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user?.id;
     if (!userId) throw new Error("User ID is required");
 
-    const challengeData = await generateBiometricChallenge(userId);
-
-    res.status(200).json({
-      message: "Biometric challenge generated",
-      challenge: challengeData.challenge,
-    });
+    const options = await getRegistrationOptions(userId);
+    res.status(200).json(options);
   } catch (error) {
     res.status(400).json({
       message: error instanceof Error ? error.message : "Something went wrong",
@@ -41,53 +46,59 @@ export const getBiometricChallenge = async (req: Request, res: Response) => {
   }
 };
 
-// Register Biometric (WebAuthn Public Key)
-export const biometricRegister = async (req: Request, res: Response) => {
-  try {
-    const { userId, credentialId, publicKey, deviceId } = req.body;
-    if (!userId || !credentialId || !publicKey || !deviceId) {
-      throw new Error(
-        "All fields (userId, credentialId, publicKey, deviceId) are required"
-      );
-    }
-
-    await registerBiometric(userId, credentialId, publicKey, deviceId);
-
-    res.status(200).json({
-      message: "Biometric registered successfully",
-    });
-  } catch (error) {
-    res.status(400).json({
-      message: error instanceof Error ? error.message : "Something went wrong",
-    });
-  }
-};
-
-// Verify WebAuthn Biometric Authentication
-export const verifyBiometricAuthController = async (
+// 3. Verify WebAuthn Registration Response
+export const verifyRegistrationResponseController = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const { userId, credentialId, signedChallenge } = req.body;
-    if (!userId || !credentialId || !signedChallenge) {
-      throw new Error(
-        "User ID, credential ID, and signed challenge are required"
-      );
+    const { userId, credential } = req.body;
+    if (!userId || !credential) {
+      throw new Error("User ID and credential response are required");
     }
 
-    const userData = await verifyBiometricAuth(
-      userId,
-      credentialId,
-      signedChallenge
-    );
-
-    res.status(200).json({
-      message: "Biometric authentication successful",
-      user: userData,
-    });
+    const verification = await verifyBiometricRegistration(userId, credential);
+    res.status(verification.success ? 200 : 400).json(verification);
   } catch (error) {
-    res.status(401).json({
+    res.status(400).json({
+      message: error instanceof Error ? error.message : "Something went wrong",
+    });
+  }
+};
+
+// 4. Generate WebAuthn Authentication Options
+export const generateAuthenticationOptionsController = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) throw new Error("User ID is required");
+
+    const options = await getAuthenticationOptions(userId);
+    res.status(200).json(options);
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : "Something went wrong",
+    });
+  }
+};
+
+// 5. Verify WebAuthn Authentication Response
+export const verifyAuthenticationResponseController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { userId, credential } = req.body;
+    if (!userId || !credential) {
+      throw new Error("User ID and credential response are required");
+    }
+
+    const verification = await verifyBiometricAuth(userId, credential);
+    res.status(verification.success ? 200 : 400).json(verification);
+  } catch (error) {
+    res.status(400).json({
       message: error instanceof Error ? error.message : "Something went wrong",
     });
   }

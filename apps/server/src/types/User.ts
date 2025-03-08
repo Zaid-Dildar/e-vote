@@ -9,6 +9,8 @@ export interface BiometricKey {
   credentialId: string; // Biometric type
   publicKey: string; // Public key for authentication
   deviceId: string; // Unique device identifier
+  counter: number;
+  transports?: string[]; // ✅ Add optional transports field
 }
 
 // Define user schema type
