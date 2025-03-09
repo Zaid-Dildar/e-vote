@@ -10,7 +10,7 @@ export default function CustomToaster() {
           {({ icon, message }) => (
             <div className="flex flex-wrap items-center w-full gap-2">
               {/* Left side: Icon + Message */}
-              <div className=" max-w-[75%] flex items-center gap-2 ">
+              <div className="relative max-w-[75%] flex items-center gap-2 ">
                 <span>{icon}</span>
                 <span className="break-words">{message}</span>
               </div>
