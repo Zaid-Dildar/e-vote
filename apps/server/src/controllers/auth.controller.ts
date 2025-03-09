@@ -99,6 +99,7 @@ export const verifyAuthenticationResponseController = async (
     const verification = await verifyBiometricAuth(userId, credential);
     res.status(verification.success ? 200 : 400).json(verification);
   } catch (error) {
+    console.error(error);
     res.status(400).json({
       message: error instanceof Error ? error.message : "Something went wrong",
     });

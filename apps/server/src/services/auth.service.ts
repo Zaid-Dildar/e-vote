@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.model";
 import generateToken from "../utils/generateToken";
+import jwt from "jsonwebtoken"; // Install with `npm install jsonwebtoken`
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -50,7 +51,6 @@ export const getRegistrationOptions = async (userId: string) => {
       userVerification: "required",
       authenticatorAttachment: "platform",
     },
-    // preferredAuthenticatorType: "localDevice",
     excludeCredentials: [],
   });
 
@@ -60,6 +60,56 @@ export const getRegistrationOptions = async (userId: string) => {
 };
 
 // **3. Verify Biometric Registration Response**
+// FIDO Metadata Service (MDS) URL
+const FIDO_METADATA_URL = "https://mds.fidoalliance.org/";
+
+// Cache for FIDO metadata
+let fidoMetadata: any = null;
+
+// Fetch FIDO metadata using the fetch API
+const fetchFidoMetadata = async () => {
+  if (!fidoMetadata) {
+    const response = await fetch(FIDO_METADATA_URL);
+    if (!response.ok) {
+      throw new Error("Failed to fetch FIDO metadata");
+    }
+
+    // The response is a JWT token, not JSON
+    const jwtToken = await response.text();
+
+    // Decode the JWT token to get the metadata
+    const decodedToken = jwt.decode(jwtToken, { complete: true });
+    if (!decodedToken || !decodedToken.payload) {
+      throw new Error("Failed to decode FIDO metadata JWT");
+    }
+
+    // Extract the metadata from the JWT payload
+    fidoMetadata = decodedToken.payload;
+  }
+
+  return fidoMetadata;
+};
+
+// Check if the authenticator supports biometrics
+const isBiometricAuthenticator = (aaguid: string, metadata: any) => {
+  if (!metadata.entries || !Array.isArray(metadata.entries)) {
+    throw new Error("Invalid FIDO metadata format");
+  }
+
+  // Find the authenticator by AAGUID
+  const authenticator = metadata.entries.find(
+    (entry: any) => entry.aaguid === aaguid
+  );
+  if (!authenticator) return false;
+
+  // Check if the authenticator supports fingerprint or Face ID
+  return authenticator.metadataStatement.userVerificationDetails.some(
+    (detail: any) =>
+      detail.userVerificationMethod === "fingerprint_internal" ||
+      detail.userVerificationMethod === "face_internal"
+  );
+};
+
 export const verifyBiometricRegistration = async (
   userId: string,
   credential: any
@@ -81,30 +131,32 @@ export const verifyBiometricRegistration = async (
   if (!verification.verified) throw new Error("Verification failed");
 
   const registrationInfo = verification.registrationInfo;
-  if (!registrationInfo) throw new Error("Missing registration info"); // ✅ Ensure registrationInfo exists
+  if (!registrationInfo) throw new Error("Missing registration info");
 
-  const { credential: registrationCredential } = registrationInfo;
+  const { credential: registrationCredential, aaguid } = registrationInfo;
   if (!registrationCredential) throw new Error("Missing credential data");
 
-  const credentialID = registrationCredential.id;
-  const credentialPublicKey = registrationCredential.publicKey;
-  const counter = registrationCredential.counter;
-  const transports = registrationCredential.transports;
+  // Fetch FIDO metadata
+  const metadata = await fetchFidoMetadata();
 
-  if (!credentialID || !credentialPublicKey)
-    throw new Error("Invalid credential data");
+  // Check if the authenticator supports biometrics
+  if (!isBiometricAuthenticator(aaguid, metadata)) {
+    throw new Error("Biometric authentication is required");
+  }
 
-  // Encode credential ID and public key
+  // Store the biometric key
   const normalizedCredentialId = isoBase64URL.fromBuffer(
-    new Uint8Array(Buffer.from(credentialID, "base64"))
+    new Uint8Array(Buffer.from(registrationCredential.id, "base64"))
   );
-  const encodedPublicKey = isoBase64URL.fromBuffer(credentialPublicKey);
+  const encodedPublicKey = isoBase64URL.fromBuffer(
+    registrationCredential.publicKey
+  );
 
   user.biometricKey = {
     credentialId: normalizedCredentialId,
     publicKey: encodedPublicKey,
-    counter,
-    transports: transports || [],
+    counter: registrationCredential.counter,
+    transports: credential.transports || [],
   };
 
   user.biometricRegistered = true;
