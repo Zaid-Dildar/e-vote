@@ -20,7 +20,6 @@ const Navbar = () => {
             alt="E-Vote"
             width={40}
             height={59}
-            // className="w-auto h-auto"
             priority
           />
         </Link>

@@ -134,6 +134,7 @@ export default function Login() {
               className="m-auto"
               src="/assets/images/Logo.svg"
               alt="Fingerprint Icon"
+              priority
               width={50}
               height={74}
             />
