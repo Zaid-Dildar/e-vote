@@ -10,7 +10,10 @@ export function middleware(req: NextRequest) {
   console.log("🚀 Middleware Debug:", { token, role, pathname });
 
   // Skip token check for the login API route
-  if (pathname.startsWith("/api/auth/login")) {
+  if (
+    pathname.startsWith("/api/auth/login") ||
+    pathname.startsWith("/api/auth/biometric")
+  ) {
     return NextResponse.next();
   }
 
