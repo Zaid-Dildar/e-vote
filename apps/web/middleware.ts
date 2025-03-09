@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   const role = req.cookies.get("role")?.value;
+  const biometricRegistered =
+    req.cookies.get("biometricRegistered")?.value === "true";
   const pathname = req.nextUrl.pathname;
 
   console.log("🚀 Middleware Debug:", { token, role, pathname });
@@ -10,6 +12,23 @@ export function middleware(req: NextRequest) {
   // Skip token check for the login API route
   if (pathname.startsWith("/api/auth/login")) {
     return NextResponse.next();
+  }
+
+  // ✅ Restrict biometric registration route
+  if (biometricRegistered && pathname === "/register-biometrics") {
+    console.log(
+      "❌ User already registered biometrics - Redirecting to /unauthorized"
+    );
+    return NextResponse.redirect(new URL("/unauthorized", req.url));
+  }
+
+  // ✅ Restrict other pages if biometric is NOT registered
+  if (
+    !biometricRegistered &&
+    !["/register-biometrics", "/login", "/"].includes(pathname)
+  ) {
+    console.log("❌ User must register biometrics first - Redirecting");
+    return NextResponse.redirect(new URL("/register-biometrics", req.url));
   }
 
   // ✅ 1️⃣ Token Check for API Requests

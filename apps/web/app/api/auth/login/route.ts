@@ -30,8 +30,13 @@ export async function POST(req: NextRequest) {
       message: "Login successful",
       user: data.user,
     });
-    console.log("user", data.user);
     response.cookies.set("token", data.user.token, {
+      httpOnly: true,
+      secure: process.env.NEXT_PUBLIC_NODE_ENV === "production",
+      path: "/",
+    });
+
+    response.cookies.set("biometricRegistered", data.user.biometricRegistered, {
       httpOnly: true,
       secure: process.env.NEXT_PUBLIC_NODE_ENV === "production",
       path: "/",

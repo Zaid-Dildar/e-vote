@@ -73,8 +73,6 @@ export default function RegisterBiometrics() {
       // Step 2: Start WebAuthn Registration
       const credential = await startRegistration({ optionsJSON: options });
 
-      console.log("Credential received:", credential);
-
       // Step 3: Send the registration response to backend
       setMessage("Verifying registration...");
 

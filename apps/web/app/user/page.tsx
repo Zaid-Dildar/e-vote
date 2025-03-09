@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useUserStore } from "../store/userStore";
-import toast from "react-hot-toast";
 
 const Page = () => {
   const router = useRouter();
@@ -43,10 +42,7 @@ const Page = () => {
       </button>
       <button
         onClick={() => {
-          toast.error(
-            "Lorem ipsum dolor sit amet, consectetur\n adipisicing elit. Veniam rem odio corporis quidem nam deleniti saepe nobis consequuntur facere doloribus esse dolores eius ipsa nemo quibusdam pariatur cum, mollitia repellat."
-          );
-          // router.push("/register-biometrics");
+          router.push("/register-biometrics");
         }}
         className="cursor-pointer mt-4 px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700"
       >
