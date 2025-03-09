@@ -7,7 +7,12 @@ export function middleware(req: NextRequest) {
     req.cookies.get("biometricRegistered")?.value === "true";
   const pathname = req.nextUrl.pathname;
 
-  console.log("🚀 Middleware Debug:", { token, role, pathname });
+  console.log("🚀 Middleware Debug:", {
+    token,
+    role,
+    pathname,
+    biometricRegistered,
+  });
 
   // Skip token check for the login API route
   if (
@@ -85,5 +90,6 @@ export const config = {
     "/admin/:path*",
     "/user/:path*",
     "/audit/:path*",
+    "/register-biometrics",
   ],
 };
