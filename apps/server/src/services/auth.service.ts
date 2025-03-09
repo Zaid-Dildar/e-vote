@@ -50,7 +50,7 @@ export const getRegistrationOptions = async (userId: string) => {
       userVerification: "required",
       authenticatorAttachment: "platform",
     },
-    preferredAuthenticatorType: "remoteDevice",
+    preferredAuthenticatorType: "localDevice",
     excludeCredentials: [],
   });
 
