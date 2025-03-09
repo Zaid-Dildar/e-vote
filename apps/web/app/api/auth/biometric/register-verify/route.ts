@@ -25,6 +25,12 @@ export async function POST(req: NextRequest) {
         { status: response.status || 400 }
       );
     }
+    response.cookies.set("biometricRegistered", true, {
+      httpOnly: true,
+      secure: process.env.NEXT_PUBLIC_NODE_ENV === "production",
+      path: "/",
+    });
+
     return NextResponse.json(response);
   } catch (error) {
     console.error("Error verifying biometric authentication:", error);
