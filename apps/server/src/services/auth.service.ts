@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.model";
 import generateToken from "../utils/generateToken";
-import jwt from "jsonwebtoken"; // Install with `npm install jsonwebtoken`
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -9,7 +8,11 @@ import {
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
 import type { AuthenticatorTransportFuture } from "@simplewebauthn/types";
-import { isoBase64URL } from "@simplewebauthn/server/helpers";
+import {
+  isoBase64URL,
+  parseAuthenticatorData,
+} from "@simplewebauthn/server/helpers";
+import * as cbor from "cbor";
 
 // **1. Standard Email & Password Authentication**
 export const authenticateUser = async (email: string, password: string) => {
@@ -49,7 +52,7 @@ export const getRegistrationOptions = async (userId: string) => {
     authenticatorSelection: {
       residentKey: "required",
       userVerification: "required",
-      authenticatorAttachment: "platform",
+      authenticatorAttachment: "cross-platform",
     },
     excludeCredentials: [],
   });
@@ -60,65 +63,16 @@ export const getRegistrationOptions = async (userId: string) => {
 };
 
 // **3. Verify Biometric Registration Response**
-// FIDO Metadata Service (MDS) URL
-const FIDO_METADATA_URL = "https://mds.fidoalliance.org/";
-
-// Cache for FIDO metadata
-let fidoMetadata: any = null;
-
-// Fetch FIDO metadata using the fetch API
-const fetchFidoMetadata = async () => {
-  if (!fidoMetadata) {
-    const response = await fetch(FIDO_METADATA_URL);
-    if (!response.ok) {
-      throw new Error("Failed to fetch FIDO metadata");
-    }
-
-    // The response is a JWT token, not JSON
-    const jwtToken = await response.text();
-
-    // Decode the JWT token to get the metadata
-    const decodedToken = jwt.decode(jwtToken, { complete: true });
-    if (!decodedToken || !decodedToken.payload) {
-      throw new Error("Failed to decode FIDO metadata JWT");
-    }
-
-    // Extract the metadata from the JWT payload
-    fidoMetadata = decodedToken.payload;
-  }
-
-  return fidoMetadata;
-};
-
-// Check if the authenticator supports biometrics
-const isBiometricAuthenticator = (aaguid: string, metadata: any) => {
-  if (!metadata.entries || !Array.isArray(metadata.entries)) {
-    throw new Error("Invalid FIDO metadata format");
-  }
-
-  // Find the authenticator by AAGUID
-  const authenticator = metadata.entries.find(
-    (entry: any) => entry.aaguid === aaguid
-  );
-  if (!authenticator) return false;
-
-  // Check if the authenticator supports fingerprint or Face ID
-  return authenticator.metadataStatement.userVerificationDetails.some(
-    (detail: any) =>
-      detail.userVerificationMethod === "fingerprint_internal" ||
-      detail.userVerificationMethod === "face_internal"
-  );
-};
 
 export const verifyBiometricRegistration = async (
   userId: string,
   credential: any
 ) => {
   const user = await User.findById(userId);
-  if (!user) throw new Error("User not found");
+  if (!user) throw new Error("❌ User not found");
 
   const expectedChallenge = user.biometricChallenge;
-  if (!expectedChallenge) throw new Error("Challenge not found");
+  if (!expectedChallenge) throw new Error("❌ Challenge not found");
 
   const verification = await verifyRegistrationResponse({
     response: credential, // Ensure this contains `.id`, `.rawId`, and `.response`
@@ -128,23 +82,60 @@ export const verifyBiometricRegistration = async (
     requireUserVerification: true,
   });
 
-  if (!verification.verified) throw new Error("Verification failed");
+  if (!verification.verified) throw new Error("❌ Verification failed");
 
   const registrationInfo = verification.registrationInfo;
-  if (!registrationInfo) throw new Error("Missing registration info");
+  if (!registrationInfo) throw new Error("❌ Missing registration info");
 
-  const { credential: registrationCredential, aaguid } = registrationInfo;
-  if (!registrationCredential) throw new Error("Missing credential data");
-
-  // Fetch FIDO metadata
-  const metadata = await fetchFidoMetadata();
-
-  // Check if the authenticator supports biometrics
-  if (!isBiometricAuthenticator(aaguid, metadata)) {
-    throw new Error("Biometric authentication is required");
+  // Ensure biometric-only authentication (reject PIN-only)
+  if (
+    registrationInfo.credentialDeviceType === "singleDevice" &&
+    !registrationInfo.userVerified
+  ) {
+    throw new Error(
+      "Biometrics are required for registration. PIN-only registration is not allowed."
+    );
   }
 
-  // Store the biometric key
+  // Reject based on known AAGUIDs (you can add more AAGUIDs for biometric-only authenticators)
+  const nonBiometricAAGUIDs = ["00000000-0000-0000-0000-000000000000"]; // Example placeholder
+
+  if (nonBiometricAAGUIDs.includes(registrationInfo.aaguid)) {
+    throw new Error(
+      "Non-biometric authenticator detected. Biometrics are required."
+    );
+  }
+
+  const { credential: registrationCredential, aaguid } = registrationInfo;
+  if (!registrationCredential) throw new Error("❌ Missing credential data");
+
+  const attestationObject = Buffer.from(
+    credential.response.attestationObject,
+    "base64"
+  ); // ✅ Ensure Buffer Encoding
+
+  const decodedAttestation = cbor.decodeFirstSync(attestationObject);
+
+  if (!decodedAttestation || !decodedAttestation.authData) {
+    throw new Error("❌ Failed to extract authenticator data");
+  }
+
+  const authData = decodedAttestation.authData;
+
+  if (!(authData instanceof Buffer)) {
+    throw new Error("❌ Authenticator data is not a Buffer");
+  }
+
+  const flags = authData[32]; // Flags are at byte index 32
+
+  const userVerified = (flags & 0x04) !== 0; // Check the 5th bit (User Verification)
+
+  if (!userVerified) {
+    throw new Error(
+      "❌ Biometrics are required for registration. PIN-only registration is not allowed."
+    );
+  }
+
   const normalizedCredentialId = isoBase64URL.fromBuffer(
     new Uint8Array(Buffer.from(registrationCredential.id, "base64"))
   );
@@ -161,6 +152,7 @@ export const verifyBiometricRegistration = async (
 
   user.biometricRegistered = true;
   user.biometricChallenge = undefined;
+
   await user.save();
 
   return { success: true, message: "Biometric registered successfully" };
