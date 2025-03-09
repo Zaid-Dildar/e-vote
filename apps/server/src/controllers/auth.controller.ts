@@ -8,7 +8,7 @@ import {
 } from "../services/auth.service";
 
 interface AuthenticatedRequest extends Request {
-  user?: { id: string }; // Adjust this type based on your actual user object
+  user?: { _id: string }; // Adjust this type based on your actual user object
 }
 
 // 1. Email & Password Login
@@ -34,7 +34,7 @@ export const generateRegistrationOptionsController = async (
   res: Response
 ) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?._id;
     if (!userId) throw new Error("User ID is required");
 
     const options = await getRegistrationOptions(userId);
@@ -73,7 +73,7 @@ export const generateAuthenticationOptionsController = async (
   res: Response
 ) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?._id;
     if (!userId) throw new Error("User ID is required");
 
     const options = await getAuthenticationOptions(userId);

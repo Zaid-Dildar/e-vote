@@ -24,8 +24,10 @@ export const createUser = async (userData: UserType): Promise<UserType> => {
 // Update user
 export const updateUser = async (
   id: string,
-  userData: Partial<UserType>
+  userData: Partial<UserType>,
+  isSelfUpdate: boolean = false // Add a flag to indicate if the user is updating themselves
 ): Promise<UserType | null> => {
+  // Check if the email is already in use by another user
   if (userData.email) {
     const existingUser = await User.findOne({ email: userData.email });
     if (existingUser && existingUser._id.toString() !== id) {
@@ -33,6 +35,18 @@ export const updateUser = async (
     }
   }
 
+  // If the user is updating themselves, remove biometric-related fields
+  if (isSelfUpdate) {
+    const {
+      biometricRegistered,
+      biometricKey,
+      biometricChallenge,
+      ...filteredUserData
+    } = userData;
+    userData = filteredUserData;
+  }
+
+  // Update the user
   return await User.findByIdAndUpdate(id, userData, {
     new: true,
     runValidators: true,

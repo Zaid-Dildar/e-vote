@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import * as userService from "../services/user.service";
 
+interface UpdateRequest extends Request {
+  user?: { _id: string }; // Adjust this type based on your actual user object
+}
 // Get all users
 export const getUsers = async (req: Request, res: Response) => {
   try {
@@ -36,9 +39,14 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 // Update a user by ID
-export const updateUser = async (req: Request, res: Response) => {
+export const updateUser = async (req: UpdateRequest, res: Response) => {
   try {
-    const updatedUser = await userService.updateUser(req.params.id, req.body);
+    const isSelfUpdate = req.user?._id.toString() === req.params.id; // Check if the user is updating themselves
+    const updatedUser = await userService.updateUser(
+      req.params.id,
+      req.body,
+      isSelfUpdate
+    );
     if (!updatedUser) {
       res.status(404).json({ message: "User not found" });
       return;

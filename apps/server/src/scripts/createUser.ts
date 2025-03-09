@@ -28,19 +28,7 @@ const createUsers = async () => {
         department: "CSE",
         role: "admin",
         password: await hashPassword("adminPassword123"),
-        biometricRegistered: true,
-        biometricKeys: [
-          {
-            credentialId: "admin-cred-1",
-            publicKey: "admin-public-key-1",
-            deviceId: "admin-device-1",
-          },
-          {
-            credentialId: "admin-cred-2",
-            publicKey: "admin-public-key-2",
-            deviceId: "admin-device-2",
-          },
-        ],
+        biometricRegistered: false,
       },
       {
         name: "Election Commissioner",
@@ -48,14 +36,7 @@ const createUsers = async () => {
         department: "CSE",
         role: "auditor",
         password: await hashPassword("commissionerPass"),
-        biometricRegistered: true,
-        biometricKeys: [
-          {
-            credentialId: "commissioner-cred-1",
-            publicKey: "commissioner-public-key-1",
-            deviceId: "commissioner-device-1",
-          },
-        ],
+        biometricRegistered: false,
       },
       {
         name: "Test Voter 1",
@@ -63,14 +44,7 @@ const createUsers = async () => {
         department: "CSE",
         role: "voter",
         password: await hashPassword("voterPass1"),
-        biometricRegistered: true,
-        biometricKeys: [
-          {
-            credentialId: "voter1-cred-1",
-            publicKey: "voter1-public-key-1",
-            deviceId: "voter1-device-1",
-          },
-        ],
+        biometricRegistered: false,
       },
       {
         name: "Test Voter 2",
@@ -86,19 +60,7 @@ const createUsers = async () => {
         department: "CSE",
         role: "voter",
         password: await hashPassword("voterPass3"),
-        biometricRegistered: true,
-        biometricKeys: [
-          {
-            credentialId: "voter3-cred-1",
-            publicKey: "voter3-public-key-1",
-            deviceId: "voter3-device-1",
-          },
-          {
-            credentialId: "voter3-cred-2",
-            publicKey: "voter3-public-key-2",
-            deviceId: "voter3-device-2",
-          },
-        ],
+        biometricRegistered: false,
       },
     ];
 

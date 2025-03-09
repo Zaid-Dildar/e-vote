@@ -1,5 +1,4 @@
 import bcrypt from "bcryptjs";
-import base64url from "base64url";
 import User from "../models/user.model";
 import generateToken from "../utils/generateToken";
 import {
@@ -35,6 +34,11 @@ export const getRegistrationOptions = async (userId: string) => {
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found");
 
+  // Check if the user already has a biometric key
+  if (user.biometricKey) {
+    throw new Error("User already has a registered biometric key");
+  }
+
   const options = await generateRegistrationOptions({
     rpName: "E-Vote System",
     rpID: process.env.RP_ID || "localhost",
@@ -42,15 +46,12 @@ export const getRegistrationOptions = async (userId: string) => {
     userName: user.email,
     attestationType: "none",
     authenticatorSelection: {
-      residentKey: "preferred",
+      residentKey: "required",
       userVerification: "required",
       authenticatorAttachment: "platform",
     },
     preferredAuthenticatorType: "remoteDevice",
-    excludeCredentials: user.biometricKeys.map((key) => ({
-      id: key.credentialId, // ✅ Convert Base64URL string to Buffer
-      type: "public-key",
-    })),
+    excludeCredentials: [],
   });
 
   user.biometricChallenge = options.challenge;
@@ -82,13 +83,13 @@ export const verifyBiometricRegistration = async (
   const registrationInfo = verification.registrationInfo;
   if (!registrationInfo) throw new Error("Missing registration info"); // ✅ Ensure registrationInfo exists
 
-  const { credential: registrationCredential, aaguid } = registrationInfo;
+  const { credential: registrationCredential } = registrationInfo;
   if (!registrationCredential) throw new Error("Missing credential data");
 
   const credentialID = registrationCredential.id;
   const credentialPublicKey = registrationCredential.publicKey;
-  const counter = registrationCredential.counter; // ✅ Corrected: Use signCount instead of counter
-  const deviceId = aaguid || "unknown-device"; // ✅ Use aaguid as deviceId
+  const counter = registrationCredential.counter;
+  const transports = registrationCredential.transports;
 
   if (!credentialID || !credentialPublicKey)
     throw new Error("Invalid credential data");
@@ -99,15 +100,14 @@ export const verifyBiometricRegistration = async (
   );
   const encodedPublicKey = isoBase64URL.fromBuffer(credentialPublicKey);
 
-  user.biometricKeys.push({
+  user.biometricKey = {
     credentialId: normalizedCredentialId,
     publicKey: encodedPublicKey,
     counter,
-    deviceId, // ✅ Include deviceId
-  });
+    transports: transports || [],
+  };
 
   user.biometricRegistered = true;
-  await user.save();
   user.biometricChallenge = undefined;
   await user.save();
 
@@ -119,19 +119,25 @@ export const getAuthenticationOptions = async (userId: string) => {
   const user = await User.findById(userId);
   if (!user || !user.biometricRegistered) throw new Error("User not found");
 
+  if (!user.biometricKey) {
+    throw new Error("No biometric key registered for this user");
+  }
+
   const options = await generateAuthenticationOptions({
     // ✅ Await the function
     rpID: process.env.RP_ID || "localhost",
-    allowCredentials: user.biometricKeys.map((key) => ({
-      id: key.credentialId, // ✅ Convert Buffer to Base64URL string
-      transports: key.transports as AuthenticatorTransportFuture[], // ✅ Ensure correct type
-    })),
-    userVerification: "preferred",
+    allowCredentials: [
+      {
+        id: user.biometricKey.credentialId,
+        transports: user.biometricKey
+          .transports as AuthenticatorTransportFuture[],
+      },
+    ],
+    userVerification: "required",
   });
 
   user.biometricChallenge = options.challenge;
   await user.save(); // ✅ Store challenge properly
-  console.log("options", options);
   return options;
 };
 
@@ -145,13 +151,11 @@ export const verifyBiometricAuth = async (userId: string, credential: any) => {
     };
   }
 
-  // Find the stored credential (biometric key) for this user
-  const storedCredential = user.biometricKeys.find(
-    (key) => key.credentialId === credential.id
-  );
-
-  if (!storedCredential) {
-    return { success: false, error: "Credential not found" };
+  if (!user.biometricKey) {
+    return {
+      success: false,
+      error: "No biometric key registered for this user",
+    };
   }
 
   try {
@@ -161,11 +165,11 @@ export const verifyBiometricAuth = async (userId: string, credential: any) => {
       expectedOrigin: process.env.ORIGIN || "http://localhost:3000",
       expectedRPID: process.env.RP_ID || "localhost",
       credential: {
-        id: storedCredential.credentialId,
-        publicKey: Buffer.from(storedCredential.publicKey, "base64"),
-        counter: storedCredential.counter,
-        transports:
-          storedCredential.transports as AuthenticatorTransportFuture[],
+        id: user.biometricKey.credentialId,
+        publicKey: Buffer.from(user.biometricKey.publicKey, "base64"),
+        counter: user.biometricKey.counter,
+        transports: user.biometricKey
+          .transports as AuthenticatorTransportFuture[],
       },
     });
 
@@ -174,7 +178,7 @@ export const verifyBiometricAuth = async (userId: string, credential: any) => {
     }
 
     // Update the counter in the database
-    storedCredential.counter = verification.authenticationInfo.newCounter;
+    user.biometricKey.counter = verification.authenticationInfo.newCounter;
     await user.save();
 
     return { success: true, user }; // ✅ Return success with user data

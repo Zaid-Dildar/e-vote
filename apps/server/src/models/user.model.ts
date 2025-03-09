@@ -6,7 +6,6 @@ const BiometricKeySchema = new Schema(
   {
     credentialId: { type: String, required: true },
     publicKey: { type: String, required: true },
-    deviceId: { type: String, required: true },
     counter: { type: Number, required: true, default: 0 }, // ✅ Add counter
     transports: { type: [String], required: false, default: [] }, // ✅ Add transports
   },
@@ -23,7 +22,7 @@ const UserSchema = new Schema<UserType>(
 
     // Biometric Authentication Fields
     biometricRegistered: { type: Boolean, default: false },
-    biometricKeys: [BiometricKeySchema], // Store multiple biometric credentials
+    biometricKey: BiometricKeySchema, // Store a single biometric key
     biometricChallenge: { type: String, default: null }, // Store the WebAuthn challenge
   },
   { timestamps: true }

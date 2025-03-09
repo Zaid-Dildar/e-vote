@@ -1,6 +1,21 @@
 import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 
+const biometricKeySchema = Joi.object({
+  credentialId: Joi.string().required().messages({
+    "any.required": "Credential ID is required",
+  }),
+  publicKey: Joi.string().required().messages({
+    "any.required": "Public key is required",
+  }),
+  counter: Joi.number().required().messages({
+    "any.required": "Counter is required",
+  }),
+  transports: Joi.array().items(Joi.string()).optional().messages({
+    "array.base": "Transports must be an array of strings",
+  }),
+});
+
 const userSchema = Joi.object({
   name: Joi.string().min(3).max(50).required().messages({
     "string.base": "Name must be a string",
@@ -31,35 +46,17 @@ const userSchema = Joi.object({
 
   biometricRegistered: Joi.boolean().default(false),
 
-  biometricKeys: Joi.array()
-    .items(
-      Joi.object({
-        credentialId: Joi.string().required().messages({
-          "any.required": "Credential ID is required",
-        }),
-        publicKey: Joi.string().required().messages({
-          "any.required": "Public key is required",
-        }),
-        deviceId: Joi.string().required().messages({
-          "any.required": "Device ID is required",
-        }),
-        counter: Joi.number().required().messages({
-          "any.required": "Counter is required",
-        }),
-        transports: Joi.array().items(Joi.string()).optional().messages({
-          "array.base": "Transports must be an array of strings",
-        }), // ✅ Add transports validation
-      })
-    )
+  biometricKey: biometricKeySchema
+    .allow(null)
     .when("biometricRegistered", {
       is: true,
       then: Joi.required(),
       otherwise: Joi.forbidden(),
     })
     .messages({
-      "array.base": "Biometric keys must be an array of objects",
+      "object.base": "Biometric key must be an object",
       "any.required":
-        "Biometric keys are required when biometricRegistered is true",
+        "Biometric key is required when biometricRegistered is true",
     }),
 
   biometricChallenge: Joi.string().allow(null).optional().messages({
