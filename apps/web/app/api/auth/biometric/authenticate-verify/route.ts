@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
     const response = await apiFetch("/api/auth/biometric/authenticate/verify", {
       method: "POST",
-      body: JSON.stringify({ userId, credential, deviceId: "web-device" }),
+      body: JSON.stringify({ userId, credential }),
       headers: { "Content-Type": "application/json" },
     });
     if (!response.success) {

@@ -15,9 +15,44 @@ export default function RegisterBiometrics() {
 
   const router = useRouter();
 
+  const isBiometricSupported = async () => {
+    try {
+      // Check if WebAuthn is supported
+      if (!window.PublicKeyCredential) {
+        throw new Error("WebAuthn is not supported on this device");
+      }
+
+      // Check if the device supports user verification (biometrics or PIN)
+      const isUVSupported =
+        await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      return isUVSupported;
+    } catch (error) {
+      console.error("Error checking biometric support:", error);
+      return false;
+    }
+  };
+
   const handleRegister = async () => {
     if (!userId) {
-      toast.success("User ID is missing!");
+      toast.error("User ID is missing!");
+      return;
+    }
+
+    const hasBiometrics = await isBiometricSupported();
+    if (!hasBiometrics) {
+      alert(
+        "This device does not support biometric authentication. Please use a device with biometric support."
+      );
+      return;
+    }
+    // Display a message encouraging biometric registration
+    const useBiometrics = confirm(
+      "Please register using biometrics (e.g., fingerprint or Face ID).\n\n" +
+        "If you try register with a PIN, you won't be able to register your biometrics."
+    );
+
+    if (!useBiometrics) {
+      toast.error("Registration aborted. Please use biometrics to register.");
       return;
     }
 
@@ -48,7 +83,6 @@ export default function RegisterBiometrics() {
         body: JSON.stringify({
           userId,
           credential,
-          deviceId: "user-device-id",
         }),
         headers: { "Content-Type": "application/json" },
       });
@@ -85,7 +119,21 @@ export default function RegisterBiometrics() {
           <p className="text-sm mt-2">
             You can only register your biometrics once. Make sure you use the
             correct passkey manager so that you can log in from both your{" "}
-            <strong>laptop and mobile</strong>.
+            <strong>laptop and mobile.</strong>.
+          </p>
+        </div>
+
+        {/* Biometric Support Warning */}
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-900 p-4 rounded-md mb-4">
+          <p className="font-semibold">📌 Biometric Support Required</p>
+          <p className="text-sm mt-2">
+            Registration is{" "}
+            <strong>preferred on devices with biometric support</strong> (e.g.,
+            fingerprint or Face ID).
+          </p>
+          <p className="text-sm mt-2">
+            If you attempt to register using a <strong>passkey or PIN</strong>,
+            the registration will <strong>not be successful</strong>.
           </p>
         </div>
 

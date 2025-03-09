@@ -8,14 +8,14 @@ export async function POST(req: NextRequest) {
 
     if (!userId || !credential) {
       return NextResponse.json(
-        { message: "All fields (userId, credential, deviceId) are required" },
+        { message: "All fields (userId and credential) are required" },
         { status: 400 }
       );
     }
 
     const response = await apiFetch("/api/auth/biometric/register/verify", {
       method: "POST",
-      body: JSON.stringify({ userId, credential, deviceId: "web-device" }),
+      body: JSON.stringify({ userId, credential }),
       headers: { "Content-Type": "application/json" },
     });
 
