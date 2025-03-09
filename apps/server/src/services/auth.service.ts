@@ -52,7 +52,7 @@ export const getRegistrationOptions = async (userId: string) => {
     authenticatorSelection: {
       residentKey: "required",
       userVerification: "required",
-      authenticatorAttachment: "cross-platform",
+      authenticatorAttachment: "platform",
     },
     excludeCredentials: [],
   });
