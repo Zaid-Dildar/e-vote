@@ -14,12 +14,28 @@ export function middleware(req: NextRequest) {
     biometricRegistered,
   });
 
-  // Skip token check for the login API route
+  // ✅ Exclude auth-related API routes
   if (
+    pathname.startsWith("/login") ||
+    (!token && pathname.startsWith("/")) ||
     pathname.startsWith("/api/auth/login") ||
+    pathname.startsWith("/api/auth/logout") ||
     pathname.startsWith("/api/auth/biometric")
   ) {
     return NextResponse.next();
+  }
+
+  // ✅ Exclude Next.js static files and assets
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon.ico") ||
+    pathname.startsWith("/assets")
+  ) {
+    return NextResponse.next();
+  }
+
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   // ✅ Restrict biometric registration route
@@ -39,57 +55,39 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/register-biometrics", req.url));
   }
 
-  // ✅ 1️⃣ Token Check for API Requests
-  if (pathname.startsWith("/api")) {
-    if (!token) {
-      console.log("❌ No token - Unauthorized API access");
-      return NextResponse.json(
-        { message: "Unauthorized: No token provided" },
-        { status: 401 }
-      );
-    }
-  }
-
-  // ✅ 2️⃣ Role-Based Access for Frontend Pages
+  // ✅ Role-Based Access Control
   if (!role) {
     console.log("❌ No role found - Redirecting to /unauthorized");
     return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
-  // Define role-based access
-  const protectedRoutes: Record<string, string[]> = {
-    "/admin": ["admin"],
-    "/user": ["admin", "voter", "auditor"],
-    "/audit": ["auditor"],
+  // Define role-based prefixes
+  const rolePrefixes: Record<string, string> = {
+    admin: "/admin",
+    voter: "/user",
+    auditor: "/audit",
   };
 
-  // Check if the route is protected
-  for (const route in protectedRoutes) {
-    if (pathname.startsWith(route)) {
-      if (!token || !role) {
-        console.log("❌ No token or role - Redirecting to /login");
-        return NextResponse.redirect(new URL("/login", req.url));
-      } else if (
-        protectedRoutes[route] &&
-        !protectedRoutes[route].includes(role)
-      ) {
-        console.log("❌ Unauthorized role - Redirecting to /unauthorized");
-        return NextResponse.redirect(new URL("/unauthorized", req.url));
-      }
-    }
+  const basePath = rolePrefixes[role] || "/"; // Default to "/" if role is missing
+
+  // ✅ Only redirect if user is on a root path or unprefixed section
+  const redirectPaths = ["/", "/users", "/audit-logs", "/elections"];
+  if (redirectPaths.includes(pathname) && !pathname.startsWith(basePath)) {
+    console.log(`🔄 Redirecting ${role} to ${basePath}${pathname}`);
+    return NextResponse.redirect(new URL(`${basePath}${pathname}`, req.url));
   }
 
   console.log("✅ Access granted");
   return NextResponse.next();
 }
 
-// ✅ Apply middleware to API calls and frontend routes (excluding /api/login)
+// ✅ Apply middleware to relevant routes
 export const config = {
   matcher: [
-    "/api/:path*", // Apply to all API routes
+    "/api/:path*",
     "/admin/:path*",
     "/user/:path*",
     "/audit/:path*",
-    "/register-biometrics",
+    "/:path*", // Catch all paths for role-based redirection
   ],
 };

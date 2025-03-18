@@ -21,7 +21,7 @@ export default function CustomToaster() {
                   onClick={() => toast.dismiss(t.id)}
                   className="group overflow-clip relative cursor-pointer bg-red-500 text-white px-2 py-1 rounded shadow hover:bg-red-600"
                 >
-                  <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transhtmlForm translate-x-20 bg-black/50 opacity-10 rotate-12 group-hover:-translate-x-30 ease rounded"></span>
+                  <span className="absolute right-0 w-5 h-32 -mt-12 transition-all duration-1500 transhtmlForm translate-x-20 bg-white/20 opacity-10 rotate-12 group-hover:-translate-x-30 ease rounded"></span>
                   Dismiss
                 </button>
               )}

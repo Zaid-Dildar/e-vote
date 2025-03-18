@@ -18,5 +18,12 @@ export async function POST() {
     expires: new Date(0), // Expire immediately
   });
 
+  response.cookies.set("biometricRegistered", "", {
+    httpOnly: true,
+    secure: process.env.NEXT_PUBLIC_NODE_ENV === "production",
+    path: "/",
+    expires: new Date(0), // Expire immediately
+  });
+
   return response;
 }
