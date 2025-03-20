@@ -10,17 +10,46 @@ import {
   ShieldCheck,
   Menu,
   X,
+  UserCog,
+  LogIn,
+  ClipboardList,
+  PlusCircle,
 } from "lucide-react";
 import Image from "next/image";
 
-const sidebarLinks = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Users", href: "/users", icon: Users },
-  { name: "Elections", href: "/elections", icon: ListChecks },
-  { name: "Audit Logs", href: "/audit-logs", icon: ShieldCheck },
-];
+interface SidebarProps {
+  type: "admin" | "auditor" | "voter";
+}
 
-export default function Sidebar() {
+const sidebarLinks = {
+  admin: [
+    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Users", href: "/users", icon: Users },
+    { name: "Elections", href: "/elections", icon: ListChecks },
+    { name: "Audit Logs", href: "/audit-logs", icon: ShieldCheck },
+    { name: "Create Election", href: "/elections/create", icon: PlusCircle },
+    { name: "Edit Profile", href: "/profile", icon: UserCog },
+  ],
+  auditor: [
+    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Elections", href: "/elections", icon: ListChecks },
+    { name: "Users", href: "/users", icon: Users },
+    { name: "Audit Logs", href: "/audit-logs", icon: ShieldCheck },
+    { name: "Edit Profile", href: "/profile", icon: UserCog },
+  ],
+  voter: [
+    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    {
+      name: "My Elections",
+      href: "/elections/participated",
+      icon: ClipboardList,
+    },
+    { name: "Join Election", href: "/elections/join", icon: LogIn },
+    { name: "Edit Profile", href: "/profile", icon: UserCog },
+  ],
+};
+
+export default function Sidebar({ type }: SidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -28,7 +57,7 @@ export default function Sidebar() {
     <>
       {/* Mobile Sidebar Toggle Button */}
       <button
-        className="lg:hidden p-3 fixed top-2.5 left-1 z-50 bg-gray-900 text-white rounded-md"
+        className="xl:hidden p-3 fixed top-2.5 left-1 z-50 bg-gray-900 text-white rounded-md"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -38,10 +67,9 @@ export default function Sidebar() {
       <aside
         className={`fixed z-30 inset-y-0 left-0 w-64 bg-gradient-to-br from-[#112B4F] to-gray-800 text-white flex flex-col p-5 transition-transform transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
+        } xl:translate-x-0`}
       >
         {/* Sidebar Header */}
-        {/* Logo */}
         <Link
           href="/"
           className="flex justify-center items-center"
@@ -58,18 +86,28 @@ export default function Sidebar() {
           />
         </Link>
         <h2 className="text-xl text-center font-bold border-b pb-2 my-3">
-          Admin Panel
+          {type === "admin"
+            ? "Admin Panel"
+            : type === "auditor"
+              ? "Auditor Panel"
+              : "Voter Dashboard"}
         </h2>
 
         {/* Sidebar Navigation Links */}
         <nav className="flex-1">
           <ul className="space-y-2">
-            {sidebarLinks.map(({ name, href, icon: Icon }, index) => (
+            {sidebarLinks[type].map(({ name, href, icon: Icon }, index) => (
               <li key={name}>
                 <Link
                   href={href}
                   className={`group relative overflow-hidden flex items-center gap-3 px-4 py-2 rounded-md transition ${
-                    pathname === "/admin" + (index !== 0 ? href : "")
+                    pathname ===
+                    (type && type === "admin"
+                      ? "/admin"
+                      : type === "auditor"
+                        ? "/audit"
+                        : "/user") +
+                      (index !== 0 ? href : "")
                       ? "bg-gray-700"
                       : "hover:bg-gray-900"
                   }`}
@@ -92,7 +130,7 @@ export default function Sidebar() {
       {/* Overlay for Mobile Sidebar */}
       {isOpen && (
         <div
-          className="fixed z-20 inset-0 bg-black/50 lg:hidden"
+          className="fixed z-20 inset-0 bg-black/50 xl:hidden"
           onClick={() => setIsOpen(false)}
         ></div>
       )}

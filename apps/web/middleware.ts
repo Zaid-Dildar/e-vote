@@ -71,7 +71,13 @@ export function middleware(req: NextRequest) {
   const basePath = rolePrefixes[role] || "/"; // Default to "/" if role is missing
 
   // ✅ Only redirect if user is on a root path or unprefixed section
-  const redirectPaths = ["/", "/users", "/audit-logs", "/elections"];
+  const redirectPaths = [
+    "/",
+    "/users",
+    "/audit-logs",
+    "/elections",
+    "/profile",
+  ];
   if (redirectPaths.includes(pathname) && !pathname.startsWith(basePath)) {
     console.log(`🔄 Redirecting ${role} to ${basePath}${pathname}`);
     return NextResponse.redirect(new URL(`${basePath}${pathname}`, req.url));

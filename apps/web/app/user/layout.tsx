@@ -7,12 +7,12 @@ export default function RootLayout({
   return (
     <div className="flex">
       {/* Sidebar */}
-      <Sidebar type="admin" />
+      <Sidebar type="voter" />
 
       {/* Main Content */}
-      <div className="flex-1 xl:ml-64">
+      <div className="flex-1 lg:ml-64">
         <Header />
-        <main className="flex-1 max-w-screen p-4">{children}</main>
+        <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
     </div>
   );
