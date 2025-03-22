@@ -3,10 +3,10 @@ import { apiFetch } from "@lib/api"; // Import reusable function
 
 export async function GET(
   request: NextRequest, // Use NextRequest instead of Request
-  { params }: { params: { electionId: string } } // Access params from the request object
+  { params }: { params: Promise<{ electionId: string }> } // Access params from the request object
 ) {
   try {
-    const { electionId } = params;
+    const { electionId } = await params;
 
     if (!electionId) {
       return NextResponse.json(
