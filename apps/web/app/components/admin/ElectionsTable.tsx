@@ -7,25 +7,27 @@ import {
   ColumnDef,
   flexRender,
   getPaginationRowModel,
-  ColumnResizeMode, // Add this import
+  ColumnResizeMode,
 } from "@tanstack/react-table";
 import { Edit, Trash2 } from "lucide-react";
+import Link from "next/link";
 
-interface User {
+interface Election {
   _id: string;
   name: string;
-  email: string;
-  role: string;
   department: string;
-  biometricRegistered?: boolean;
+  position: string;
+  startTime: Date;
+  endTime: Date;
+  status: "scheduled" | "started" | "completed";
 }
 
 interface Props {
-  users: User[];
+  elections: Election[];
   searchTerm: string;
 }
 
-export default function UsersTable({ users, searchTerm }: Props) {
+export default function ElectionsTable({ elections, searchTerm }: Props) {
   // Pagination state
   const [pagination, setPagination] = useState({
     pageIndex: 0, // Page index (zero-based)
@@ -48,8 +50,19 @@ export default function UsersTable({ users, searchTerm }: Props) {
     );
   };
 
+  const getElectionStatus = (startTime: Date, endTime: Date) => {
+    const now = new Date();
+    if (now < new Date(startTime)) {
+      return "scheduled";
+    } else if (now >= new Date(startTime) && now <= new Date(endTime)) {
+      return "started";
+    } else {
+      return "completed";
+    }
+  };
+
   // Define table columns
-  const columns: ColumnDef<User>[] = [
+  const columns: ColumnDef<Election>[] = [
     {
       accessorKey: "name",
       header: "Name",
@@ -57,10 +70,10 @@ export default function UsersTable({ users, searchTerm }: Props) {
       size: 200, // Set initial width for the "Name" column
     },
     {
-      accessorKey: "email",
-      header: "Email",
+      accessorKey: "position",
+      header: "Position",
       cell: (info) => highlightText(info.getValue() as string, searchTerm),
-      size: 250, // Set initial width for the "Email" column
+      size: 100, // Set initial width for the "Position" column
     },
     {
       accessorKey: "department",
@@ -69,26 +82,53 @@ export default function UsersTable({ users, searchTerm }: Props) {
       size: 100, // Set smaller width for the "Department" column
     },
     {
-      accessorKey: "biometricRegistered",
-      header: "Biometrics",
-      cell: (info) => (
-        <span
-          className={`px-2 py-1 rounded ${
-            (info.getValue() as boolean)
-              ? "bg-green-200 text-green-800"
-              : "bg-yellow-200 text-yellow-800"
-          }`}
-        >
-          {(info.getValue() as boolean) ? "Registered" : "Unregistered"}
-        </span>
-      ),
-      size: 100, // Set smaller width for the "Biometrics" column
+      accessorKey: "startTime",
+      header: "Start Time",
+      cell: (info) => new Date(info.getValue() as string).toLocaleString(),
+      size: 150, // Set initial width for the "Start Time" column
     },
     {
-      accessorKey: "role",
-      header: "Role",
-      cell: (info) => info.getValue() as string,
-      size: 100, // Set initial width for the "Role" column
+      accessorKey: "endTime",
+      header: "End Time",
+      cell: (info) => new Date(info.getValue() as string).toLocaleString(),
+      size: 150, // Set initial width for the "End Time" column
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: (info) => {
+        const startTime = info.row.original.startTime; // Get startTime from the row data
+        const endTime = info.row.original.endTime; // Get endTime from the row data
+        const status = getElectionStatus(startTime, endTime); // Calculate the status
+
+        return (
+          <span
+            className={`px-2 py-1 rounded ${
+              status === "scheduled"
+                ? "bg-yellow-200 text-yellow-800"
+                : status === "started"
+                  ? "bg-blue-200 text-blue-800"
+                  : "bg-green-200 text-green-800"
+            }`}
+          >
+            {status}
+          </span>
+        );
+      },
+      size: 100, // Set smaller width for the "Status" column
+    },
+    {
+      id: "auditLogs",
+      header: "Audit Logs",
+      cell: (info) => (
+        <Link
+          href={`/admin/elections/${info.row.original._id}/audit-logs`}
+          className="text-blue-500 hover:text-blue-700"
+        >
+          View Logs
+        </Link>
+      ),
+      size: 100,
     },
     {
       id: "edit",
@@ -96,7 +136,7 @@ export default function UsersTable({ users, searchTerm }: Props) {
       cell: (info) => (
         <button
           className="cursor-pointer pt-1 text-blue-500 hover:text-blue-700"
-          onClick={() => console.log("Editing user", info.row.original._id)}
+          onClick={() => console.log("Editing election", info.row.original._id)}
         >
           <Edit size={18} />
         </button>
@@ -109,7 +149,9 @@ export default function UsersTable({ users, searchTerm }: Props) {
       cell: (info) => (
         <button
           className="cursor-pointer text-red-500 hover:text-red-700"
-          onClick={() => console.log("Deleting user", info.row.original._id)}
+          onClick={() =>
+            console.log("Deleting election", info.row.original._id)
+          }
         >
           <Trash2 size={18} />
         </button>
@@ -117,36 +159,37 @@ export default function UsersTable({ users, searchTerm }: Props) {
       size: 70, // Set smaller width for the "Delete" column
     },
   ];
+
   // Filter data based on search term
   const filteredData = useMemo(() => {
-    if (!searchTerm) return users;
+    if (!searchTerm) return elections;
 
-    return users.filter((user) => {
+    return elections.filter((election) => {
       return (
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.department.toLowerCase().includes(searchTerm.toLowerCase())
+        election.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        election.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        election.position.toLowerCase().includes(searchTerm.toLowerCase())
       );
     });
-  }, [users, searchTerm]);
+  }, [elections, searchTerm]);
 
   // Create the table instance
   const table = useReactTable({
     data: filteredData,
     columns,
     state: {
-      pagination, // Pass pagination state
+      pagination,
     },
-    onPaginationChange: setPagination, // Update pagination state
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(), // Enable pagination
-    manualPagination: false, // Use client-side pagination
+    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: false,
     columnResizeMode,
   });
 
   return (
     <>
-      <div className="w-full max-w- overflow-x-auto relative rounded">
+      <div className="w-full overflow-x-auto relative rounded">
         <table className="w-max min-w-full border-collapse border">
           <thead>
             <tr className="group bg-[#112B4F] text-white">
@@ -155,7 +198,7 @@ export default function UsersTable({ users, searchTerm }: Props) {
                   <th
                     key={header.id}
                     className="py-3 px-3 text-center border-2 border-gray-900 relative"
-                    style={{ width: header.getSize() }} // Set column width
+                    style={{ width: header.getSize() }}
                   >
                     {flexRender(
                       header.column.columnDef.header,
@@ -163,20 +206,11 @@ export default function UsersTable({ users, searchTerm }: Props) {
                     )}
                     {index !== headerGroup.headers.length - 1 && (
                       <div
-                        onMouseDown={header.getResizeHandler()} // Add resize handler
-                        onTouchStart={header.getResizeHandler()} // Add resize handler
+                        onMouseDown={header.getResizeHandler()}
+                        onTouchStart={header.getResizeHandler()}
                         className={`resizer ${
                           header.column.getIsResizing() ? "isResizing" : ""
                         }`}
-                        style={{
-                          transform:
-                            columnResizeMode === "onEnd" &&
-                            header.column.getIsResizing()
-                              ? `translateX(${
-                                  table.getState().columnSizingInfo.deltaOffset
-                                }px)`
-                              : "",
-                        }}
                       />
                     )}
                   </th>
@@ -185,31 +219,26 @@ export default function UsersTable({ users, searchTerm }: Props) {
             </tr>
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => {
-              return (
-                <tr
-                  key={row.original._id}
-                  className={`relative group transition-all bg-gray-100 hover:bg-gray-300`}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="py-3 px-2 w-1/4 max-md:min-w-[120px] border-2 border-gray-900 text-center"
-                      style={{ width: cell.column.getSize() }} // Set column width
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              );
-            })}
+            {table.getRowModel().rows.map((row) => (
+              <tr
+                key={row.original._id}
+                className="relative group transition-all bg-gray-100 hover:bg-gray-300"
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <td
+                    key={cell.id}
+                    className="py-3 px-2 w-1/4 max-md:min-w-[120px] border-2 border-gray-900 text-center"
+                    style={{ width: cell.column.getSize() }}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
-      {/* Pagination Controls */}
+      {/* Pagination Controls (same as UsersTable) */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 w-full">
         {/* Previous & Next Buttons */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">

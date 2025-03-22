@@ -1,7 +1,8 @@
+import Elections from "@components/admin/Elections";
 import React from "react";
 
 const page = () => {
-  return <div>Elections Page</div>;
+  return <Elections />;
 };
 
 export default page;

@@ -7,13 +7,11 @@ import {
   LayoutDashboard,
   Users,
   ListChecks,
-  ShieldCheck,
   Menu,
   X,
   UserCog,
   LogIn,
   ClipboardList,
-  PlusCircle,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -26,15 +24,12 @@ const sidebarLinks = {
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Users", href: "/users", icon: Users },
     { name: "Elections", href: "/elections", icon: ListChecks },
-    { name: "Audit Logs", href: "/audit-logs", icon: ShieldCheck },
-    { name: "Create Election", href: "/elections/create", icon: PlusCircle },
     { name: "Edit Profile", href: "/profile", icon: UserCog },
   ],
   auditor: [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "Elections", href: "/elections", icon: ListChecks },
     { name: "Users", href: "/users", icon: Users },
-    { name: "Audit Logs", href: "/audit-logs", icon: ShieldCheck },
+    { name: "Elections", href: "/elections", icon: ListChecks },
     { name: "Edit Profile", href: "/profile", icon: UserCog },
   ],
   voter: [
@@ -57,7 +52,7 @@ export default function Sidebar({ type }: SidebarProps) {
     <>
       {/* Mobile Sidebar Toggle Button */}
       <button
-        className="xl:hidden p-3 fixed top-2.5 left-1 z-50 bg-gray-900 text-white rounded-md"
+        className="lg:hidden p-3 fixed top-2.5 left-1 z-50 bg-gray-900 text-white rounded-md"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -67,7 +62,7 @@ export default function Sidebar({ type }: SidebarProps) {
       <aside
         className={`fixed z-30 inset-y-0 left-0 w-64 bg-gradient-to-br from-[#112B4F] to-gray-800 text-white flex flex-col p-5 transition-transform transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } xl:translate-x-0`}
+        } lg:translate-x-0`}
       >
         {/* Sidebar Header */}
         <Link
@@ -130,7 +125,7 @@ export default function Sidebar({ type }: SidebarProps) {
       {/* Overlay for Mobile Sidebar */}
       {isOpen && (
         <div
-          className="fixed z-20 inset-0 bg-black/50 xl:hidden"
+          className="fixed z-20 inset-0 bg-black/50 lg:hidden"
           onClick={() => setIsOpen(false)}
         ></div>
       )}
