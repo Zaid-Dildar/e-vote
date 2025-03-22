@@ -22,6 +22,7 @@ const createUsers = async () => {
 
     // Define test users
     const users = [
+      // 1 Admin
       {
         name: "Admin User",
         email: "admin@example.com",
@@ -30,38 +31,34 @@ const createUsers = async () => {
         password: await hashPassword("adminPassword123"),
         biometricRegistered: false,
       },
+      // 2 Auditors
       {
-        name: "Election Commissioner",
-        email: "commissioner@example.com",
+        name: "Auditor 1",
+        email: "auditor1@example.com",
         department: "CSE",
         role: "auditor",
-        password: await hashPassword("commissionerPass"),
+        password: await hashPassword("auditorPass1"),
         biometricRegistered: false,
       },
       {
-        name: "Test Voter 1",
-        email: "voter1@example.com",
+        name: "Auditor 2",
+        email: "auditor2@example.com",
         department: "CSE",
-        role: "voter",
-        password: await hashPassword("voterPass1"),
+        role: "auditor",
+        password: await hashPassword("auditorPass2"),
         biometricRegistered: false,
       },
-      {
-        name: "Test Voter 2",
-        email: "voter2@example.com",
-        department: "CSE",
-        role: "voter",
-        password: await hashPassword("voterPass2"),
-        biometricRegistered: false, // Ensure consistency
-      },
-      {
-        name: "Test Voter 3",
-        email: "voter3@example.com",
-        department: "CSE",
-        role: "voter",
-        password: await hashPassword("voterPass3"),
-        biometricRegistered: false,
-      },
+      // 17 Voters
+      ...(await Promise.all(
+        Array.from({ length: 17 }, async (_, i) => ({
+          name: `Voter ${i + 1}`,
+          email: `voter${i + 1}@example.com`,
+          department: "CSE",
+          role: "voter",
+          password: await hashPassword(`voterPass${i + 1}`),
+          biometricRegistered: false,
+        }))
+      )),
     ];
 
     // Insert users into the database
