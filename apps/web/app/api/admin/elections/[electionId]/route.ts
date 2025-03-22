@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { apiFetch } from "@lib/api"; // Import reusable function
 
 export async function GET(
-  request: Request, // First argument is the request object
-  { params }: { params: { electionId: string } } // Second argument is the params object
+  request: NextRequest, // Use NextRequest instead of Request
+  { params }: { params: { electionId: string } } // Access params from the request object
 ) {
   try {
     const { electionId } = params;
