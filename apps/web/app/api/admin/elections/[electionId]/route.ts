@@ -3,10 +3,10 @@ import { apiFetch } from "@lib/api"; // Import reusable function
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { electionId: string } } // No need to wrap in Promise
+  { params }: { params: Promise<{ electionId: string }> } // No need to wrap in Promise
 ) {
   try {
-    const { electionId } = params; // Destructure directly
+    const { electionId } = await params; // Destructure directly
 
     if (!electionId) {
       return NextResponse.json(
@@ -33,10 +33,10 @@ export async function GET(
 // PUT (update) an election by ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { electionId: string } } // No need to wrap in Promise
+  { params }: { params: Promise<{ electionId: string }> } // No need to wrap in Promise
 ) {
   try {
-    const { electionId } = params; // Destructure directly
+    const { electionId } = await params; // Destructure directly
 
     // Check if electionId is provided
     if (!electionId) {
@@ -109,10 +109,10 @@ export async function PUT(
 // DELETE an election by ID
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { electionId: string } } // No need to wrap in Promise
+  { params }: { params: Promise<{ electionId: string }> } // No need to wrap in Promise
 ) {
   try {
-    const { electionId } = params; // Destructure directly
+    const { electionId } = await params; // Destructure directly
 
     if (!electionId) {
       return NextResponse.json(

@@ -4,10 +4,10 @@ import { apiFetch } from "@lib/api"; // Import reusable function
 // GET a single user by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params;
+    const { userId } = await params;
 
     if (!userId) {
       return NextResponse.json(
@@ -35,10 +35,10 @@ export async function GET(
 // PUT (update) a user by ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params;
+    const { userId } = await params;
 
     if (!userId) {
       return NextResponse.json(
@@ -90,10 +90,10 @@ export async function PUT(
 // DELETE a user by ID
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params;
+    const { userId } = await params;
 
     if (!userId) {
       return NextResponse.json(
