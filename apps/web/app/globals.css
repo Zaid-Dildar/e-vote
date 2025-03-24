@@ -56,8 +56,9 @@
 /* Table Re sizing */
 
 .resizer {
+  z-index: 10;
   position: absolute;
-  right: 0;
+  right: -2.3;
   top: 0;
   height: 100%;
   width: 5px;

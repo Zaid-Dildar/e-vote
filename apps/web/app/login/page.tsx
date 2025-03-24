@@ -48,13 +48,7 @@ export default function Login() {
         const biometricSuccess = await verifyBiometrics(data.user.id);
 
         if (biometricSuccess) {
-          if (data.user.role === "voter") {
-            router.push("/user");
-          } else if (data.user.role === "admin") {
-            router.push("/admin");
-          } else {
-            router.push("/audit");
-          } // Redirect to dashboard
+          router.push("/");
           toast.success("Login successful!");
         } else {
           toast.error("Biometric verification failed.");

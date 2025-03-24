@@ -60,7 +60,7 @@ export default function Sidebar({ type }: SidebarProps) {
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed z-30 inset-y-0 left-0 w-64 bg-gradient-to-br from-[#112B4F] to-gray-800 text-white flex flex-col p-5 transition-transform transform ${
+        className={`fixed z-40 inset-y-0 left-0 w-64 bg-gradient-to-br from-[#112B4F] to-gray-800 text-white flex flex-col p-5 transition-transform transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
@@ -125,7 +125,7 @@ export default function Sidebar({ type }: SidebarProps) {
       {/* Overlay for Mobile Sidebar */}
       {isOpen && (
         <div
-          className="fixed z-20 inset-0 bg-black/50 lg:hidden"
+          className="fixed z-30 inset-0 bg-black/50 lg:hidden"
           onClick={() => setIsOpen(false)}
         ></div>
       )}

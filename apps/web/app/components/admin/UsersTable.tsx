@@ -7,7 +7,7 @@ import {
   ColumnDef,
   flexRender,
   getPaginationRowModel,
-  ColumnResizeMode, // Add this import
+  ColumnResizeMode,
 } from "@tanstack/react-table";
 import { Edit, Trash2 } from "lucide-react";
 
@@ -16,22 +16,32 @@ interface User {
   name: string;
   email: string;
   role: string;
+  password: string;
   department: string;
   biometricRegistered?: boolean;
+  updatedAt: Date;
 }
 
 interface Props {
   users: User[];
   searchTerm: string;
+  onEditUserAction: (user: User) => void; // Prop for editing a user
+  onDeleteUserAction: (userId: string) => void; // Prop for deleting a user
 }
 
-export default function UsersTable({ users, searchTerm }: Props) {
-  // Pagination state
+export default function UsersTable({
+  users,
+  searchTerm,
+  onEditUserAction,
+  onDeleteUserAction,
+}: Props) {
   const [pagination, setPagination] = useState({
     pageIndex: 0, // Page index (zero-based)
     pageSize: 10, // Number of rows per page
   });
   const [columnResizeMode] = useState<ColumnResizeMode>("onChange");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false); // State for delete modal
+  const [userToDelete, setUserToDelete] = useState<string | null>(null); // Store user ID to delete
 
   // Highlight matching text
   const highlightText = (text: string, searchTerm: string) => {
@@ -96,7 +106,7 @@ export default function UsersTable({ users, searchTerm }: Props) {
       cell: (info) => (
         <button
           className="cursor-pointer pt-1 text-blue-500 hover:text-blue-700"
-          onClick={() => console.log("Editing user", info.row.original._id)}
+          onClick={() => onEditUserAction(info.row.original)} // Call onEditUser
         >
           <Edit size={18} />
         </button>
@@ -109,7 +119,10 @@ export default function UsersTable({ users, searchTerm }: Props) {
       cell: (info) => (
         <button
           className="cursor-pointer text-red-500 hover:text-red-700"
-          onClick={() => console.log("Deleting user", info.row.original._id)}
+          onClick={() => {
+            setUserToDelete(info.row.original._id); // Set user ID to delete
+            setDeleteModalOpen(true); // Open the delete confirmation modal
+          }}
         >
           <Trash2 size={18} />
         </button>
@@ -117,6 +130,7 @@ export default function UsersTable({ users, searchTerm }: Props) {
       size: 70, // Set smaller width for the "Delete" column
     },
   ];
+
   // Filter data based on search term
   const filteredData = useMemo(() => {
     if (!searchTerm) return users;
@@ -144,17 +158,26 @@ export default function UsersTable({ users, searchTerm }: Props) {
     columnResizeMode,
   });
 
+  // Handle delete confirmation
+  const handleDeleteConfirm = () => {
+    if (userToDelete) {
+      onDeleteUserAction(userToDelete); // Trigger the delete action
+      setDeleteModalOpen(false); // Close the modal
+      setUserToDelete(null); // Reset the user to delete
+    }
+  };
+
   return (
     <>
-      <div className="w-full max-w- overflow-x-auto relative rounded">
-        <table className="w-max min-w-full border-collapse border">
+      <div className="w-full max-w- overflow-x-auto relative rounded-lg shadow-lg border-2 border-gray-400">
+        <table className="w-max min-w-full">
           <thead>
             <tr className="group bg-[#112B4F] text-white">
               {table.getHeaderGroups().map((headerGroup) =>
                 headerGroup.headers.map((header, index) => (
                   <th
                     key={header.id}
-                    className="py-3 px-3 text-center border-2 border-gray-900 relative"
+                    className="py-3 px-3 text-center relative"
                     style={{ width: header.getSize() }} // Set column width
                   >
                     {flexRender(
@@ -189,12 +212,12 @@ export default function UsersTable({ users, searchTerm }: Props) {
               return (
                 <tr
                   key={row.original._id}
-                  className={`relative group transition-all bg-gray-100 hover:bg-gray-300`}
+                  className={`relative group transition-all border-t-2 border-t-gray-300 bg-gray-100 hover:bg-gray-200`}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
-                      className="py-3 px-2 w-1/4 max-md:min-w-[120px] border-2 border-gray-900 text-center"
+                      className="py-3 px-2 w-1/4 max-md:min-w-[120px] last-of-type:border-r-0  border-r-2 border-r-gray-300 text-center text-gray-700"
                       style={{ width: cell.column.getSize() }} // Set column width
                     >
                       {flexRender(
@@ -209,6 +232,7 @@ export default function UsersTable({ users, searchTerm }: Props) {
           </tbody>
         </table>
       </div>
+
       {/* Pagination Controls */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 w-full">
         {/* Previous & Next Buttons */}
@@ -254,6 +278,40 @@ export default function UsersTable({ users, searchTerm }: Props) {
           </select>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-60 bg-black/70 bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-md">
+            <h2 className="text-white py-4 rounded-t text-xl text-center bg-[#112B4F] font-bold mb-4">
+              Confirm Deletion
+            </h2>
+            <div className="p-6 pt-1">
+              <p className="text-gray-700 mb-4">
+                Are you sure you want to delete this user?
+              </p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setDeleteModalOpen(false)}
+                  className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 cursor-pointer group relative overflow-hidden shadow-md"
+                >
+                  <span className="max-sm:hidden group-disabled:hidden absolute -top-10 w-8 h-30 bg-white opacity-10 rotate-6 translate-x-30 group-hover:-translate-x-30 transition-all duration-1000 ease" />
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 cursor-pointer group relative overflow-hidden shadow-md"
+                >
+                  <span className="max-sm:hidden group-disabled:hidden absolute -top-10 w-8 h-30 bg-white opacity-10 rotate-6 translate-x-30 group-hover:-translate-x-30 transition-all duration-1000 ease" />
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

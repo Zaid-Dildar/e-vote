@@ -8,6 +8,7 @@ interface User {
   role: string;
   department: string;
   biometricRegistered: boolean;
+  password: string;
   token: string;
 }
 

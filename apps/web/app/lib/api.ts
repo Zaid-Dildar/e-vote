@@ -21,6 +21,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
   if (!res.ok) {
     const errorData = await res.json();
+    console.log("from lib:", errorData);
     throw new Error(errorData.message || "Request failed");
   }
 

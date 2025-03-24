@@ -12,6 +12,11 @@ import {
 import { Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 
+interface Candidate {
+  name: string;
+  picture: string;
+}
+
 interface Election {
   _id: string;
   name: string;
@@ -20,20 +25,30 @@ interface Election {
   startTime: Date;
   endTime: Date;
   status: "scheduled" | "started" | "completed";
+  updatedAt: Date;
+  candidates: Candidate[];
 }
 
 interface Props {
   elections: Election[];
   searchTerm: string;
+  onEditElectionAction: (election: Election) => void;
+  onDeleteElectionAction: (electionId: string) => void;
 }
 
-export default function ElectionsTable({ elections, searchTerm }: Props) {
-  // Pagination state
+export default function ElectionsTable({
+  elections,
+  searchTerm,
+  onEditElectionAction,
+  onDeleteElectionAction,
+}: Props) {
   const [pagination, setPagination] = useState({
-    pageIndex: 0, // Page index (zero-based)
-    pageSize: 10, // Number of rows per page
+    pageIndex: 0,
+    pageSize: 10,
   });
   const [columnResizeMode] = useState<ColumnResizeMode>("onChange");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false); // State for delete modal
+  const [electionToDelete, setElectionToDelete] = useState<string | null>(null); // Store election ID to delete
 
   // Highlight matching text
   const highlightText = (text: string, searchTerm: string) => {
@@ -67,39 +82,39 @@ export default function ElectionsTable({ elections, searchTerm }: Props) {
       accessorKey: "name",
       header: "Name",
       cell: (info) => highlightText(info.getValue() as string, searchTerm),
-      size: 200, // Set initial width for the "Name" column
+      size: 200,
     },
     {
       accessorKey: "position",
       header: "Position",
       cell: (info) => highlightText(info.getValue() as string, searchTerm),
-      size: 100, // Set initial width for the "Position" column
+      size: 100,
     },
     {
       accessorKey: "department",
       header: "Department",
       cell: (info) => highlightText(info.getValue() as string, searchTerm),
-      size: 100, // Set smaller width for the "Department" column
+      size: 100,
     },
     {
       accessorKey: "startTime",
       header: "Start Time",
       cell: (info) => new Date(info.getValue() as string).toLocaleString(),
-      size: 150, // Set initial width for the "Start Time" column
+      size: 170,
     },
     {
       accessorKey: "endTime",
       header: "End Time",
       cell: (info) => new Date(info.getValue() as string).toLocaleString(),
-      size: 150, // Set initial width for the "End Time" column
+      size: 170,
     },
     {
       accessorKey: "status",
       header: "Status",
       cell: (info) => {
-        const startTime = info.row.original.startTime; // Get startTime from the row data
-        const endTime = info.row.original.endTime; // Get endTime from the row data
-        const status = getElectionStatus(startTime, endTime); // Calculate the status
+        const startTime = info.row.original.startTime;
+        const endTime = info.row.original.endTime;
+        const status = getElectionStatus(startTime, endTime);
 
         return (
           <span
@@ -115,7 +130,7 @@ export default function ElectionsTable({ elections, searchTerm }: Props) {
           </span>
         );
       },
-      size: 100, // Set smaller width for the "Status" column
+      size: 100,
     },
     {
       id: "auditLogs",
@@ -128,7 +143,7 @@ export default function ElectionsTable({ elections, searchTerm }: Props) {
           View Logs
         </Link>
       ),
-      size: 100,
+      size: 110,
     },
     {
       id: "edit",
@@ -136,12 +151,12 @@ export default function ElectionsTable({ elections, searchTerm }: Props) {
       cell: (info) => (
         <button
           className="cursor-pointer pt-1 text-blue-500 hover:text-blue-700"
-          onClick={() => console.log("Editing election", info.row.original._id)}
+          onClick={() => onEditElectionAction(info.row.original)}
         >
           <Edit size={18} />
         </button>
       ),
-      size: 70, // Set smaller width for the "Edit" column
+      size: 60,
     },
     {
       id: "delete",
@@ -149,14 +164,15 @@ export default function ElectionsTable({ elections, searchTerm }: Props) {
       cell: (info) => (
         <button
           className="cursor-pointer text-red-500 hover:text-red-700"
-          onClick={() =>
-            console.log("Deleting election", info.row.original._id)
-          }
+          onClick={() => {
+            setElectionToDelete(info.row.original._id); // Set election ID to delete
+            setDeleteModalOpen(true); // Open the delete confirmation modal
+          }}
         >
           <Trash2 size={18} />
         </button>
       ),
-      size: 70, // Set smaller width for the "Delete" column
+      size: 60,
     },
   ];
 
@@ -187,17 +203,26 @@ export default function ElectionsTable({ elections, searchTerm }: Props) {
     columnResizeMode,
   });
 
+  // Handle delete confirmation
+  const handleDeleteConfirm = () => {
+    if (electionToDelete) {
+      onDeleteElectionAction(electionToDelete); // Trigger the delete action
+      setDeleteModalOpen(false); // Close the modal
+      setElectionToDelete(null); // Reset the election to delete
+    }
+  };
+
   return (
     <>
-      <div className="w-full overflow-x-auto relative rounded">
-        <table className="w-max min-w-full border-collapse border">
+      <div className="w-full overflow-x-auto shadow-lg relative border-2 border-gray-400 rounded-lg">
+        <table className="w-max min-w-full">
           <thead>
             <tr className="group bg-[#112B4F] text-white">
               {table.getHeaderGroups().map((headerGroup) =>
                 headerGroup.headers.map((header, index) => (
                   <th
                     key={header.id}
-                    className="py-3 px-3 text-center border-2 border-gray-900 relative"
+                    className="py-3 px-3 text-center relative"
                     style={{ width: header.getSize() }}
                   >
                     {flexRender(
@@ -222,12 +247,12 @@ export default function ElectionsTable({ elections, searchTerm }: Props) {
             {table.getRowModel().rows.map((row) => (
               <tr
                 key={row.original._id}
-                className="relative group transition-all bg-gray-100 hover:bg-gray-300"
+                className="relative group transition-all border-t-2 border-t-gray-300 bg-gray-100 hover:bg-gray-200"
               >
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className="py-3 px-2 w-1/4 max-md:min-w-[120px] border-2 border-gray-900 text-center"
+                    className="py-3 px-2 w-1/4 max-md:min-w-[120px] last-of-type:border-r-0  border-r-2 border-r-gray-300 text-center text-gray-700"
                     style={{ width: cell.column.getSize() }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -238,7 +263,8 @@ export default function ElectionsTable({ elections, searchTerm }: Props) {
           </tbody>
         </table>
       </div>
-      {/* Pagination Controls (same as UsersTable) */}
+
+      {/* Pagination Controls */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 w-full">
         {/* Previous & Next Buttons */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
@@ -283,6 +309,40 @@ export default function ElectionsTable({ elections, searchTerm }: Props) {
           </select>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-60 bg-black/70 bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-md">
+            <h2 className="text-white py-4 rounded-t text-xl text-center bg-[#112B4F] font-bold mb-4">
+              Confirm Deletion
+            </h2>
+            <div className="p-6 pt-1">
+              <p className="text-gray-700 mb-4">
+                Are you sure you want to delete this election?
+              </p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setDeleteModalOpen(false)}
+                  className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 cursor-pointer group relative overflow-hidden shadow-md"
+                >
+                  <span className="max-sm:hidden group-disabled:hidden absolute -top-10 w-8 h-30 bg-white opacity-10 rotate-6 translate-x-30 group-hover:-translate-x-30 transition-all duration-1000 ease" />
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 cursor-pointer group relative overflow-hidden shadow-md"
+                >
+                  <span className="max-sm:hidden group-disabled:hidden absolute -top-10 w-8 h-30 bg-white opacity-10 rotate-6 translate-x-30 group-hover:-translate-x-30 transition-all duration-1000 ease" />
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
