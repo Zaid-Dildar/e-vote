@@ -8,10 +8,7 @@ import {
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
 import type { AuthenticatorTransportFuture } from "@simplewebauthn/types";
-import {
-  isoBase64URL,
-  parseAuthenticatorData,
-} from "@simplewebauthn/server/helpers";
+import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import * as cbor from "cbor";
 
 // **1. Standard Email & Password Authentication**
@@ -29,6 +26,7 @@ export const authenticateUser = async (email: string, password: string) => {
     role: user.role,
     department: user.department,
     biometricRegistered: user.biometricRegistered,
+    password: user.password,
     token: generateToken(user._id),
   };
 };

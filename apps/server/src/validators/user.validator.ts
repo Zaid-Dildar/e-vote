@@ -38,9 +38,8 @@ const userSchema = Joi.object({
     "any.required": "Department is required",
   }),
 
-  password: Joi.string().min(6).max(30).required().messages({
+  password: Joi.string().min(6).required().messages({
     "string.min": "Password must be at least 6 characters",
-    "string.max": "Password must be less than 30 characters",
     "any.required": "Password is required",
   }),
 
@@ -50,7 +49,7 @@ const userSchema = Joi.object({
     .allow(null)
     .when("biometricRegistered", {
       is: true,
-      then: Joi.required(),
+      then: Joi.optional(),
       otherwise: Joi.forbidden(),
     })
     .messages({

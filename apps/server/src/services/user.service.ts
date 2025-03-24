@@ -1,5 +1,6 @@
 import User from "../models/user.model";
 import { UserType } from "../types/User";
+import bcrypt from "bcryptjs";
 
 // Get all users
 export const getAllUsers = async (): Promise<UserType[]> => {
@@ -21,11 +22,10 @@ export const createUser = async (userData: UserType): Promise<UserType> => {
   return await user.save();
 };
 
-// Update user
 export const updateUser = async (
   id: string,
   userData: Partial<UserType>,
-  isSelfUpdate: boolean = false // Add a flag to indicate if the user is updating themselves
+  isSelfUpdate: boolean = false // Flag to indicate if the user is updating themselves
 ): Promise<UserType | null> => {
   // Check if the email is already in use by another user
   if (userData.email) {
@@ -44,6 +44,26 @@ export const updateUser = async (
       ...filteredUserData
     } = userData;
     userData = filteredUserData;
+  }
+
+  // Check if password is being updated
+  if (userData.password) {
+    const user = await User.findById(id);
+    if (!user) {
+      throw { message: "User not found", status: 404 };
+    }
+
+    // Compare new password with existing hash
+    const isSamePassword = userData.password === user.password;
+
+    if (!isSamePassword) {
+      // Hash the new password only if it has changed
+      const salt = await bcrypt.genSalt(10);
+      userData.password = await bcrypt.hash(userData.password, salt);
+    } else {
+      // Keep the existing hashed password if it's the same
+      userData.password = user.password;
+    }
   }
 
   // Update the user

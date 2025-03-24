@@ -6,13 +6,14 @@ export const getAllElections = async (): Promise<ElectionType[]> => {
   return await Election.find();
 };
 
-// Get election by ID
 export const getElectionById = async (
   id: string
 ): Promise<ElectionType | null> => {
-  return await Election.findById(id);
+  return await Election.findById(id).populate({
+    path: "auditLogs.user", // Path to the user field in auditLogs
+    select: "name", // Select only the user's name (or other fields you need)
+  });
 };
-
 // Create election
 export const createElection = async (
   electionData: ElectionType
