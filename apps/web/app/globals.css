@@ -73,6 +73,38 @@
   opacity: 1;
 }
 
+/* Vote Animation */
+
+@keyframes slideUp {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 1s ease-in-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 1s ease-in-out;
+}
+
 /* Animations */
 
 .animate-marquee {

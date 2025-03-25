@@ -52,6 +52,7 @@ export default function Elections() {
       setLoading(false);
     }
   };
+  console.log([elections[0], elections[1]]);
 
   useEffect(() => {
     fetchElections();

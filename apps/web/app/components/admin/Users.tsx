@@ -34,10 +34,12 @@ export default function UsersPage() {
       const data: User[] = await res.json();
       // Sort users by createdAt in descending order (latest first)
       setUsers(
-        data.sort(
-          (x, y) =>
-            new Date(y.updatedAt).getTime() - new Date(x.updatedAt).getTime()
-        )
+        data
+          .filter((x) => x.role !== "admin")
+          .sort(
+            (x, y) =>
+              new Date(y.updatedAt).getTime() - new Date(x.updatedAt).getTime()
+          )
       );
     } catch (err) {
       console.error(err);
@@ -48,7 +50,7 @@ export default function UsersPage() {
   useEffect(() => {
     fetchUsers();
   }, []);
-
+  console.log([users[0], users[1]]);
   const handleAddUser = () => {
     setSelectedUser(null); // Clear selected user for adding
     setIsModalOpen(true);

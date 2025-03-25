@@ -9,7 +9,7 @@ import {
   getPaginationRowModel,
   ColumnResizeMode,
 } from "@tanstack/react-table";
-import { Edit, Trash2 } from "lucide-react";
+import { CalendarCheck, Clock, Edit, Trash2, Vote } from "lucide-react";
 import Link from "next/link";
 
 interface Candidate {
@@ -118,7 +118,7 @@ export default function ElectionsTable({
 
         return (
           <span
-            className={`px-2 py-1 rounded ${
+            className={`m-auto px-2 py-1 rounded flex items-center gap-1 w-fit ${
               status === "scheduled"
                 ? "bg-yellow-200 text-yellow-800"
                 : status === "started"
@@ -126,6 +126,9 @@ export default function ElectionsTable({
                   : "bg-green-200 text-green-800"
             }`}
           >
+            {status === "scheduled" && <CalendarCheck className="w-4 h-4" />}
+            {status === "started" && <Clock className="w-4 h-4" />}
+            {status === "completed" && <Vote className="w-4 h-4" />}
             {status}
           </span>
         );

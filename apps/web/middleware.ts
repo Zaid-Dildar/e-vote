@@ -7,13 +7,6 @@ export function middleware(req: NextRequest) {
     req.cookies.get("biometricRegistered")?.value === "true";
   const pathname = req.nextUrl.pathname;
 
-  console.log("🚀 Middleware Debug:", {
-    token,
-    role,
-    pathname,
-    biometricRegistered,
-  });
-
   // ✅ Exclude auth-related API routes
   if (
     pathname.startsWith("/login") ||
@@ -40,9 +33,6 @@ export function middleware(req: NextRequest) {
 
   // ✅ Restrict biometric registration route
   if (biometricRegistered && pathname === "/register-biometrics") {
-    console.log(
-      "❌ User already registered biometrics - Redirecting to /unauthorized"
-    );
     return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
@@ -51,13 +41,11 @@ export function middleware(req: NextRequest) {
     !biometricRegistered &&
     !["/register-biometrics", "/login", "/"].includes(pathname)
   ) {
-    console.log("❌ User must register biometrics first - Redirecting");
     return NextResponse.redirect(new URL("/register-biometrics", req.url));
   }
 
   // ✅ Role-Based Access Control
   if (!role) {
-    console.log("❌ No role found - Redirecting to /unauthorized");
     return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
@@ -73,11 +61,9 @@ export function middleware(req: NextRequest) {
   // ✅ Only redirect if user is on a root path or unprefixed section
   const redirectPaths = ["/", "/users", "/elections", "/profile"];
   if (redirectPaths.includes(pathname) && !pathname.startsWith(basePath)) {
-    console.log(`🔄 Redirecting ${role} to ${basePath}${pathname}`);
     return NextResponse.redirect(new URL(`${basePath}${pathname}`, req.url));
   }
 
-  console.log("✅ Access granted");
   return NextResponse.next();
 }
 
