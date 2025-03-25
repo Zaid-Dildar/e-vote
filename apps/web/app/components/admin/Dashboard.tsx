@@ -21,6 +21,8 @@ import {
   Vote,
   CalendarCheck,
   TrendingUp,
+  Scale,
+  RefreshCcw,
 } from "lucide-react";
 
 // Register ChartJS components
@@ -448,7 +450,7 @@ const Dashboard = () => {
       </h1>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-blue-100 rounded-full">
@@ -457,7 +459,11 @@ const Dashboard = () => {
             <div>
               <p className="text-gray-500">Total Users</p>
               <h3 className="text-2xl font-bold">
-                {loading.users ? "..." : userStats.total}
+                {loading.users ? (
+                  <RefreshCcw className="w-5 h-5 animate-spin" />
+                ) : (
+                  userStats.total
+                )}
               </h3>
             </div>
           </div>
@@ -471,7 +477,11 @@ const Dashboard = () => {
             <div>
               <p className="text-gray-500">Biometric Registered</p>
               <h3 className="text-2xl font-bold">
-                {loading.users ? "..." : userStats.biometricRegistered}
+                {loading.users ? (
+                  <RefreshCcw className="w-5 h-5 animate-spin" />
+                ) : (
+                  userStats.biometricRegistered
+                )}
               </h3>
             </div>
           </div>
@@ -485,7 +495,11 @@ const Dashboard = () => {
             <div>
               <p className="text-gray-500">Total Elections</p>
               <h3 className="text-2xl font-bold">
-                {loading.elections ? "..." : electionStats.total}
+                {loading.elections ? (
+                  <RefreshCcw className="w-5 h-5 animate-spin" />
+                ) : (
+                  electionStats.total
+                )}
               </h3>
             </div>
           </div>
@@ -499,7 +513,11 @@ const Dashboard = () => {
             <div>
               <p className="text-gray-500">Active Elections</p>
               <h3 className="text-2xl font-bold">
-                {loading.elections ? "..." : electionStats.active}
+                {loading.elections ? (
+                  <RefreshCcw className="w-5 h-5 animate-spin" />
+                ) : (
+                  electionStats.active
+                )}
               </h3>
             </div>
           </div>
@@ -513,7 +531,7 @@ const Dashboard = () => {
           <div className="h-64">
             {loading.users ? (
               <div className="h-full flex items-center justify-center">
-                <p>Loading...</p>
+                <RefreshCcw className="w-5 h-5 animate-spin" />
               </div>
             ) : (
               <Bar
@@ -532,7 +550,7 @@ const Dashboard = () => {
           <div className="h-64">
             {loading.users ? (
               <div className="h-full flex items-center justify-center">
-                <p>Loading...</p>
+                <RefreshCcw className="w-5 h-5 animate-spin" />
               </div>
             ) : (
               <Pie
@@ -553,7 +571,7 @@ const Dashboard = () => {
           <div className="h-64">
             {loading.elections ? (
               <div className="h-full flex items-center justify-center">
-                <p>Loading...</p>
+                <RefreshCcw className="w-5 h-5 animate-spin" />
               </div>
             ) : (
               <Bar
@@ -572,7 +590,7 @@ const Dashboard = () => {
           <div className="h-64 overflow-y-auto">
             {loading.users ? (
               <div className="h-full flex items-center justify-center">
-                <p>Loading...</p>
+                <RefreshCcw className="w-5 h-5 animate-spin" />
               </div>
             ) : (
               <table className="min-w-full divide-y divide-gray-200">
@@ -662,6 +680,21 @@ const Dashboard = () => {
                 >
                   {/* Election header remains the same */}
 
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Vote className="text-blue-500" /> {election.name}
+                      </h3>
+                      <p className="text-gray-600 flex items-center gap-1">
+                        <Scale className="w-4 h-4" /> {election.position} -{" "}
+                        {election.department}
+                      </p>
+                    </div>
+                    <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                      <Clock className="w-4 h-4" /> Live
+                    </div>
+                  </div>
+
                   <div className="space-y-4">
                     {sortedCandidates.map((candidate, index) => {
                       const percentage =
@@ -743,6 +776,29 @@ const Dashboard = () => {
                   </div>
 
                   {/* Rest of the component remains the same */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="text-sm text-gray-600 flex items-center gap-1">
+                      <Users className="w-4 h-4" /> Total votes cast:{" "}
+                      {totalVotes}
+                    </p>
+                    <p className="text-sm text-gray-600 flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      Time remaining:{" "}
+                      {(() => {
+                        const diffMs =
+                          new Date(election.endTime).getTime() - Date.now();
+                        const hours = Math.max(
+                          0,
+                          Math.floor(diffMs / (1000 * 60 * 60))
+                        );
+                        const minutes = Math.max(
+                          0,
+                          Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+                        );
+                        return `${hours} hours ${minutes} mins`;
+                      })()}
+                    </p>
+                  </div>
                 </div>
               );
             })}
@@ -755,7 +811,9 @@ const Dashboard = () => {
         <h2 className="text-xl font-semibold mb-4">Recent Elections</h2>
         <div className="bg-white rounded-lg shadow overflow-auto">
           {loading.elections ? (
-            <div className="p-6 text-center">Loading elections...</div>
+            <div className="p-6 flex justify-center">
+              <RefreshCcw className="w-5 h-5 animate-spin" />
+            </div>
           ) : (
             <table className="w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
