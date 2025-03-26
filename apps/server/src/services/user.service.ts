@@ -66,6 +66,11 @@ export const updateUser = async (
     }
   }
 
+  // If biometricRegistered is false, clear biometricKey
+  if (userData.biometricRegistered === false) {
+    userData.biometricKey = null;
+  }
+
   // Update the user
   return await User.findByIdAndUpdate(id, userData, {
     new: true,
