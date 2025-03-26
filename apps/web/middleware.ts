@@ -7,36 +7,36 @@ export function middleware(req: NextRequest) {
     req.cookies.get("biometricRegistered")?.value === "true";
   const pathname = req.nextUrl.pathname;
 
-  // ✅ Exclude auth-related API routes
-  if (
-    pathname.startsWith("/login") ||
-    (!token && pathname.startsWith("/")) ||
-    pathname.startsWith("/api/auth/login") ||
-    pathname.startsWith("/api/auth/logout") ||
-    pathname.startsWith("/api/auth/biometric")
-  ) {
+  if (pathname === "/" && !token) {
     return NextResponse.next();
   }
 
-  // ✅ Exclude Next.js static files and assets
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon.ico") ||
-    pathname.startsWith("/assets")
-  ) {
+  // ✅ Public routes that don't require authentication
+  const publicRoutes = [
+    "/login",
+    "/api/auth/login",
+    "/api/logout",
+    "/api/auth/biometric",
+    "/_next",
+    "/favicon.ico",
+    "/assets",
+    "/unauthorized",
+  ];
+
+  if (publicRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
+  // ✅ Check authentication
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // ✅ Restrict biometric registration route
+  // ✅ Biometric registration enforcement
   if (biometricRegistered && pathname === "/register-biometrics") {
     return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
-  // ✅ Restrict other pages if biometric is NOT registered
   if (
     !biometricRegistered &&
     !["/register-biometrics", "/login", "/"].includes(pathname)
@@ -44,36 +44,76 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/register-biometrics", req.url));
   }
 
-  // ✅ Role-Based Access Control
+  // ✅ Role validation
   if (!role) {
     return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
-  // Define role-based prefixes
-  const rolePrefixes: Record<string, string> = {
-    admin: "/admin",
-    voter: "/user",
-    auditor: "/audit",
+  // ✅ Define role-based access rules
+  const roleAccess: Record<
+    string,
+    {
+      uiPrefix: string;
+      apiPrefix: string;
+      allowedRoutes: string[];
+    }
+  > = {
+    admin: {
+      uiPrefix: "/admin",
+      apiPrefix: "/api/admin",
+      allowedRoutes: ["/api/admin", "/api/auth"], // Admins can access admin APIs and auth APIs
+    },
+    voter: {
+      uiPrefix: "/user",
+      apiPrefix: "/api/user",
+      allowedRoutes: ["/api/user", "/api/auth"], // Users can access user APIs and auth APIs
+    },
+    auditor: {
+      uiPrefix: "/audit",
+      apiPrefix: "/api/audit",
+      allowedRoutes: ["/api/audit", "/api/auth"], // Auditors can access audit APIs and auth APIs
+    },
   };
 
-  const basePath = rolePrefixes[role] || "/"; // Default to "/" if role is missing
+  const currentRoleConfig = roleAccess[role];
 
-  // ✅ Only redirect if user is on a root path or unprefixed section
+  // ✅ API access control
+  if (pathname.startsWith("/api")) {
+    const isAllowed = currentRoleConfig?.allowedRoutes.some((prefix) =>
+      pathname.startsWith(prefix)
+    );
+
+    if (!isAllowed) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized: You don't have permission to access this API",
+        },
+        { status: 403 }
+      );
+    }
+  }
+
+  // ✅ UI route redirection
+  const basePath = currentRoleConfig?.uiPrefix;
   const redirectPaths = ["/", "/users", "/elections", "/profile"];
-  if (redirectPaths.includes(pathname) && !pathname.startsWith(basePath)) {
+
+  if (
+    redirectPaths.includes(pathname) &&
+    !pathname.startsWith(basePath || "")
+  ) {
     return NextResponse.redirect(new URL(`${basePath}${pathname}`, req.url));
+  }
+
+  if (
+    !pathname.startsWith(currentRoleConfig?.uiPrefix ?? "") &&
+    !pathname.startsWith("/api")
+  ) {
+    return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
   return NextResponse.next();
 }
 
-// ✅ Apply middleware to relevant routes
 export const config = {
-  matcher: [
-    "/api/:path*",
-    "/admin/:path*",
-    "/user/:path*",
-    "/audit/:path*",
-    "/:path*", // Catch all paths for role-based redirection
-  ],
+  matcher: ["/:path*"],
 };

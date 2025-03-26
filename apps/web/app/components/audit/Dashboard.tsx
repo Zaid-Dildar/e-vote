@@ -107,7 +107,7 @@ const Dashboard = () => {
   const fetchUsers = async () => {
     setLoading((prev) => ({ ...prev, users: true }));
     try {
-      const res = await fetch("/api/admin/users");
+      const res = await fetch("/api/audit/users");
       if (!res.ok) throw new Error("Failed to fetch users");
       const data: User[] = await res.json();
       setUsers(data);
@@ -122,7 +122,7 @@ const Dashboard = () => {
   const fetchElections = async () => {
     setLoading((prev) => ({ ...prev, elections: true }));
     try {
-      const res = await fetch("/api/admin/elections");
+      const res = await fetch("/api/audit/elections");
       if (!res.ok) throw new Error("Failed to fetch elections");
       const data: Election[] = await res.json();
       setElections(
@@ -440,7 +440,7 @@ const Dashboard = () => {
       {/* Header */}
       <h1 className="flex items-center gap-2 text-2xl font-bold mb-4">
         <LayoutDashboard size={30} className="min-w-10 min-h-10" />
-        Admin Dashboard
+        Auditor Dashboard
       </h1>
 
       {/* Stats Cards */}
@@ -744,7 +744,7 @@ const Dashboard = () => {
             font-medium 
             transition-all 
             ease-in-out
-            duration-200 
+            duration-300 
             ${hasNewVotes ? "text-blue-600 scale-110" : "text-gray-900 scale-100"}
           `}
                             >

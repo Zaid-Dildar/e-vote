@@ -77,7 +77,7 @@ export default function AdminProfileSettings() {
       delete updatedUser.id;
       delete updatedUser.token;
 
-      const response = await fetch(`/api/admin/users/${user?.id}`, {
+      const response = await fetch(`/api/audit/users/${user?.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -145,7 +145,7 @@ export default function AdminProfileSettings() {
       delete updatedUser.token;
 
       //   Call the API to update general information
-      const response = await fetch(`/api/admin/users/${user?.id}`, {
+      const response = await fetch(`/api/audit/users/${user?.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

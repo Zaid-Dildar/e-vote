@@ -1,8 +1,22 @@
 import { cookies } from "next/headers"; // Import cookies from Next.js
 
+// types/api.d.ts or in your lib/api.ts file
+type ApiError = {
+  message: string;
+  error?: {
+    message: string;
+    status?: number;
+  };
+};
+
+type ApiFetchError = Error & {
+  data?: ApiError;
+};
+
+// lib/api.ts
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const cookieStore = cookies(); // Get cookies
-  const token = (await cookieStore).get("token")?.value; // Await cookies()
+  const cookieStore = cookies();
+  const token = (await cookieStore).get("token")?.value;
 
   if (!token) {
     throw new Error("Unauthorized: No token provided");
@@ -10,8 +24,8 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
   const headers = {
     "Content-Type": "application/json",
-    ...(options.headers || {}), // Merge custom headers
-    Authorization: `Bearer ${token}`, // Add auth header
+    ...(options.headers || {}),
+    Authorization: `Bearer ${token}`,
   };
 
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
@@ -20,10 +34,13 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   });
 
   if (!res.ok) {
-    const errorData = await res.json();
-    console.log("from lib:", errorData);
-    throw new Error(errorData.message || "Request failed");
+    const errorData: ApiError = await res.json();
+    const error: ApiFetchError = new Error(
+      errorData.message || "Request failed"
+    );
+    error.data = errorData;
+    throw error;
   }
 
-  return res.json(); // Return parsed JSON response
+  return res.json();
 }

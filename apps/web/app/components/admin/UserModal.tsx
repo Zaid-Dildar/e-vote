@@ -18,7 +18,7 @@ interface UserModalProps {
   isOpen: boolean;
   onCloseAction: () => void;
   onSubmitAction: (userData: Partial<User>) => void;
-  onClearBiometrics?: (userId: string) => void; // Optional function to clear biometrics
+  onClearBiometrics?: (userData: Partial<User>) => void; // Optional function to clear biometrics
   user?: User | null; // Optional user data for editing
 }
 
@@ -153,7 +153,15 @@ export default function UserModal({
 
   const handleClearBiometrics = () => {
     if (user && onClearBiometrics) {
-      onClearBiometrics(user._id); // Call the function to clear biometrics
+      // Prepare the data to be submitted
+      const userData: Partial<User> = {
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        department: formData.department,
+      };
+      onClearBiometrics(userData);
+      onCloseAction(); // Close the modal
     }
   };
 

@@ -6,7 +6,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "../store/userStore";
-import { startAuthentication } from "@simplewebauthn/browser";
+import { useBiometricVerification } from "../lib/useBiometricVerification";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,6 +14,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { setUser } = useUserStore();
   const router = useRouter();
+  const { verifyBiometrics } = useBiometricVerification();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,9 +50,6 @@ export default function Login() {
 
         if (biometricSuccess) {
           router.push("/");
-          toast.success("Login successful!");
-        } else {
-          toast.error("Biometric verification failed.");
         }
       } else {
         router.push("/register-biometrics"); // Redirect to biometric registration
@@ -63,44 +61,6 @@ export default function Login() {
       );
     } finally {
       setLoading(false);
-    }
-  };
-
-  const verifyBiometrics = async (userId: string) => {
-    try {
-      if (!userId) return false;
-
-      // Step 1: Request authentication options
-      const challengeRes = await fetch(
-        "/api/auth/biometric/authenticate-options",
-        { method: "GET" }
-      );
-
-      if (!challengeRes.ok) return false;
-
-      const options = await challengeRes.json();
-
-      // Step 2: Start WebAuthn authentication
-      const authenticationResponse = await startAuthentication({
-        optionsJSON: options,
-      });
-
-      // Step 3: Send authentication response to the backend for verification
-      const verifyRes = await fetch("/api/auth/biometric/authenticate-verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          credential: authenticationResponse,
-        }),
-      });
-
-      if (!verifyRes.ok) return false;
-
-      const verifyData = await verifyRes.json();
-      return verifyData.success;
-    } catch {
-      return false;
     }
   };
 

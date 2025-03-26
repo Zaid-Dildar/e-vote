@@ -19,6 +19,14 @@ interface User {
   updatedAt: Date;
 }
 
+type ApiError = {
+  message: string;
+  error?: {
+    message: string;
+    status?: number;
+  };
+};
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,14 +41,7 @@ export default function UsersPage() {
       if (!res.ok) throw new Error("Failed to fetch users");
       const data: User[] = await res.json();
       // Sort users by createdAt in descending order (latest first)
-      setUsers(
-        data
-          .filter((x) => x.role !== "admin")
-          .sort(
-            (x, y) =>
-              new Date(y.updatedAt).getTime() - new Date(x.updatedAt).getTime()
-          )
-      );
+      setUsers(data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -80,11 +81,40 @@ export default function UsersPage() {
     }
   };
 
-  const handleClearBiometrics = (userId: string) => {
-    console.log("Clearing biometrics for user:", userId);
-    setIsModalOpen(false);
+  const handleClearBiometrics = async (userData: Partial<User>) => {
+    try {
+      // Update existing user
+      userData.password = selectedUser?.password;
 
-    // Add logic to clear biometrics for the user
+      const response = await fetch(`/api/admin/users/${selectedUser?._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...userData,
+          biometricRegistered: false,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          (result as ApiError)?.error?.message ||
+            (result as ApiError)?.message ||
+            "Failed to clear biometrics"
+        );
+      }
+
+      toast.success("Biometrics cleared successfully");
+      fetchUsers();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to clear biometrics"
+      );
+      console.error("Error clearing biometrics:", error);
+    }
   };
 
   const handleSubmit = async (userData: Partial<User>) => {
@@ -92,8 +122,9 @@ export default function UsersPage() {
       let response;
       if (selectedUser) {
         // Update existing user
-        if (userData.password === undefined)
+        if (userData.password === undefined) {
           userData.password = selectedUser.password;
+        }
         response = await fetch(`/api/admin/users/${selectedUser._id}`, {
           method: "PUT",
           headers: {
@@ -112,23 +143,27 @@ export default function UsersPage() {
         });
       }
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error(`Failed to ${selectedUser ? "update" : "add"} user`);
+        throw new Error(
+          (result as ApiError)?.error?.message ||
+            (result as ApiError)?.message ||
+            `Failed to ${selectedUser ? "update" : "add"} user`
+        );
       }
 
-      const result = await response.json();
-      toast.success(`${selectedUser ? "Updated" : "Added"} user:`, result);
-
-      // Optionally, you can refresh the user list or update the state here
+      toast.success(`User ${selectedUser ? "updated" : "added"} successfully`);
       fetchUsers();
     } catch (error) {
-      toast.error(`${error}`);
+      toast.error(error instanceof Error ? error.message : "An error occurred");
       console.error(
         `Error ${selectedUser ? "updating" : "adding"} user:`,
         error
       );
     }
   };
+
   return (
     <div className="max-w-7xl mx-auto p-4">
       <h1 className="flex items-center gap-2 text-2xl font-bold mb-4">

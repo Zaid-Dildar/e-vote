@@ -1,7 +1,8 @@
+import UsersPage from "@components/audit/Users";
 import React from "react";
 
-const page = () => {
-  return <div>Auditor Users</div>;
+const Users = () => {
+  return <UsersPage />;
 };
 
-export default page;
+export default Users;
