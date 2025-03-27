@@ -50,7 +50,7 @@ export default function Login() {
         const biometricSuccess = true;
 
         if (biometricSuccess) {
-          router.push("/");
+          window.location.href = "/";
         }
       } else {
         router.push("/register-biometrics"); // Redirect to biometric registration
