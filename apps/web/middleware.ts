@@ -106,7 +106,8 @@ export function middleware(req: NextRequest) {
 
   if (
     !pathname.startsWith(currentRoleConfig?.uiPrefix ?? "") &&
-    !pathname.startsWith("/api")
+    !pathname.startsWith("/api") &&
+    !(pathname === "/register-biometrics")
   ) {
     return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
