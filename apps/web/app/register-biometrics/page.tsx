@@ -91,7 +91,7 @@ export default function RegisterBiometrics() {
 
       toast.success("Biometric registration successful!");
       setUser({ ...user, biometricRegistered: true });
-      router.replace("/user");
+      router.replace("/");
     } catch (error) {
       toast.error(
         `Error: ${error instanceof Error ? error.message : "Unknown error"}`
