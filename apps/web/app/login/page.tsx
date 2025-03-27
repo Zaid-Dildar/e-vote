@@ -46,15 +46,14 @@ export default function Login() {
 
       // Step 2: If biometrics are registered, perform biometric verification
       if (data.user.biometricRegistered) {
-        // const biometricSuccess = await verifyBiometrics(data.user.id);
-        const biometricSuccess = true;
+        const biometricSuccess = await verifyBiometrics(data.user.id);
 
         if (biometricSuccess) {
           window.location.href = "/";
         }
       } else {
-        router.push("/register-biometrics"); // Redirect to biometric registration
         toast.success("Login successful!");
+        router.push("/register-biometrics"); // Redirect to biometric registration
       }
     } catch (error: unknown) {
       toast.error(
