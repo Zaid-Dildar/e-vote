@@ -85,7 +85,7 @@ export default function VotingModal({
   };
 
   const handleVoteSubmission = async () => {
-    if (verified) {
+    if (!verified) {
       toast.error("Biometric Verification is required!");
       return;
     }
