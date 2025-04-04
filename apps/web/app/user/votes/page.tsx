@@ -1,7 +1,8 @@
+import MyVotes from "@components/user/MyVotes";
 import React from "react";
 
 const page = () => {
-  return <div>User Elections participated</div>;
+  return <MyVotes />;
 };
 
 export default page;

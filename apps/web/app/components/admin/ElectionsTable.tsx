@@ -13,6 +13,7 @@ import { CalendarCheck, Clock, Edit, Trash2, Vote } from "lucide-react";
 import Link from "next/link";
 
 interface Candidate {
+  _id?: string;
   name: string;
   picture: string;
 }

@@ -95,7 +95,7 @@ export function middleware(req: NextRequest) {
 
   // ✅ UI route redirection
   const basePath = currentRoleConfig?.uiPrefix;
-  const redirectPaths = ["/", "/users", "/elections", "/profile"];
+  const redirectPaths = ["/", "/users", "/elections", "/profile", "/votes"];
 
   if (
     redirectPaths.includes(pathname) &&

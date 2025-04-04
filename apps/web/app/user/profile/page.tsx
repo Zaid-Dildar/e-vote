@@ -1,7 +1,8 @@
+import EditProfile from "@components/user/EditProfile";
 import React from "react";
 
 const page = () => {
-  return <div>User Profile</div>;
+  return <EditProfile />;
 };
 
 export default page;

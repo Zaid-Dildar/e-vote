@@ -10,8 +10,7 @@ import {
   Menu,
   X,
   UserCog,
-  LogIn,
-  ClipboardList,
+  CheckCircle,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -34,12 +33,8 @@ const sidebarLinks = {
   ],
   voter: [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    {
-      name: "My Elections",
-      href: "/elections/participated",
-      icon: ClipboardList,
-    },
-    { name: "Join Election", href: "/elections/join", icon: LogIn },
+    { name: "Elections", href: "/elections", icon: ListChecks },
+    { name: "My Votes", href: "/votes", icon: CheckCircle },
     { name: "Edit Profile", href: "/profile", icon: UserCog },
   ],
 };

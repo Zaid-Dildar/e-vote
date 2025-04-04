@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { z } from "zod";
 
 interface Candidate {
+  _id?: string;
   name: string;
   picture: string;
 }
@@ -42,6 +43,7 @@ const electionSchema = z
     candidates: z
       .array(
         z.object({
+          _id: z.string().optional(),
           name: z.string().min(1, "Candidate name is required"),
           picture: z.string().url("Candidate picture must be a valid URL"),
         })
@@ -138,7 +140,6 @@ export default function ElectionModal({
       [name]: value,
     }));
   };
-
   const handleCandidateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewCandidate((prev) => ({
@@ -298,7 +299,10 @@ export default function ElectionModal({
             <div>
               <h3 className="text-lg font-semibold mb-2">Candidates</h3>
               {formData.candidates.map((candidate, index) => (
-                <div key={index} className="flex items-center gap-2 mb-2">
+                <div
+                  key={candidate._id || index}
+                  className="flex items-center gap-2 mb-2"
+                >
                   <Image
                     width={40}
                     height={40}
@@ -307,6 +311,11 @@ export default function ElectionModal({
                     className="w-10 h-10 rounded-full"
                   />
                   <span>{candidate.name}</span>
+                  {candidate._id && (
+                    <span className="text-xs text-gray-500">
+                      (ID: {candidate._id})
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleRemoveCandidate(index)}

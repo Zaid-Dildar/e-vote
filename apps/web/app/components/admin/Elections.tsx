@@ -9,6 +9,7 @@ import ElectionModal from "./ElectionModal"; // Import the modal component
 import toast from "react-hot-toast";
 
 interface Candidate {
+  _id?: string;
   name: string;
   picture: string;
 }
@@ -52,7 +53,6 @@ export default function Elections() {
       setLoading(false);
     }
   };
-  console.log([elections[0], elections[1]]);
 
   useEffect(() => {
     fetchElections();
@@ -91,24 +91,23 @@ export default function Elections() {
     try {
       let response;
       if (selectedElection) {
-        // Remove `_id` from candidates
-
-        if (!electionData.candidates) throw new Error("Candidates Required");
-        const cleanedCandidates = electionData.candidates.map(
-          (candidate: Candidate) => {
-            return { name: candidate.name, picture: candidate.picture };
-          }
-        );
-
-        // Replace candidates with the cleaned array
-        electionData.candidates = cleanedCandidates;
         // Update existing election
+        // Make sure we're preserving candidate _ids
+        const updatedElectionData = {
+          ...electionData,
+          candidates: electionData.candidates?.map((candidate) => ({
+            _id: candidate._id, // Preserve the _id if it exists
+            name: candidate.name,
+            picture: candidate.picture,
+          })),
+        };
+
         response = await fetch(`/api/admin/elections/${selectedElection._id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(electionData),
+          body: JSON.stringify(updatedElectionData),
         });
       } else {
         // Add new election
@@ -178,7 +177,7 @@ export default function Elections() {
 
       {/* Table */}
       {loading ? (
-        <SkeletonTable rows={8} columns={6} />
+        <SkeletonTable rows={8} columns={9} />
       ) : (
         <ElectionsTable
           elections={elections}
