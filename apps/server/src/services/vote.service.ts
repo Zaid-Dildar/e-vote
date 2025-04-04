@@ -13,3 +13,8 @@ export const getVotesByElection = async (
 ): Promise<VoteType[]> => {
   return await Vote.find({ election: electionId });
 };
+
+// Get votes by user ID
+export const getVotesByUser = async (userId: string): Promise<VoteType[]> => {
+  return await Vote.find({ user: userId });
+};

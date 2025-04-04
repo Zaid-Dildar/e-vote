@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { validateVote } from "../validators/vote.validator";
-import { castVote, getVotesByElection } from "../controllers/vote.controller";
+import {
+  castVote,
+  getVotesByElection,
+  getVotesByUser,
+} from "../controllers/vote.controller";
 import { authorizeRoles, protect } from "../middleware/authMiddleware";
 
 const router = Router();
@@ -13,5 +17,6 @@ router.get(
   authorizeRoles("admin"),
   getVotesByElection
 );
+router.get("/user/:userId", protect, authorizeRoles("voter"), getVotesByUser);
 
 export default router;

@@ -20,3 +20,13 @@ export const getVotesByElection = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error fetching votes", error });
   }
 };
+
+// Get votes by user ID
+export const getVotesByUser = async (req: Request, res: Response) => {
+  try {
+    const votes = await voteService.getVotesByUser(req.params.userId);
+    res.status(200).json(votes);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching votes", error });
+  }
+};

@@ -3,6 +3,7 @@ import Joi from "joi";
 
 // Define the schema for a candidate
 const candidateSchema = Joi.object({
+  _id: Joi.string().min(3).max(50).optional(),
   name: Joi.string().min(3).max(50).required().messages({
     "string.base": "Name must be a string",
     "string.min": "Name must be at least 3 characters",

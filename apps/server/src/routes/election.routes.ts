@@ -12,7 +12,12 @@ import { authorizeRoles, protect } from "../middleware/authMiddleware";
 const router = Router();
 
 // Only authenticated users can access these routes
-router.get("/", protect, authorizeRoles("admin", "auditor"), getElections);
+router.get(
+  "/",
+  protect,
+  authorizeRoles("admin", "auditor", "voter"),
+  getElections
+);
 router.get(
   "/:id",
   protect,

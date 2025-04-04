@@ -76,7 +76,7 @@ export const verifyBiometricRegistration = async (
     response: credential, // Ensure this contains `.id`, `.rawId`, and `.response`
     expectedChallenge,
     expectedRPID: process.env.RP_ID || "localhost",
-    expectedOrigin: process.env.ORIGIN || "http://localhost:3000",
+    expectedOrigin: process.env.ORIGIN || "http://localhost:3001",
     requireUserVerification: true,
   });
 
@@ -204,7 +204,7 @@ export const verifyBiometricAuth = async (userId: string, credential: any) => {
     const verification = await verifyAuthenticationResponse({
       response: credential,
       expectedChallenge: user.biometricChallenge ?? "",
-      expectedOrigin: process.env.ORIGIN || "http://localhost:3000",
+      expectedOrigin: process.env.ORIGIN || "http://localhost:3001",
       expectedRPID: process.env.RP_ID || "localhost",
       credential: {
         id: user.biometricKey.credentialId,

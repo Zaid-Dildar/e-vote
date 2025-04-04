@@ -1,11 +1,20 @@
 import { Request, Response } from "express";
 import * as electionService from "../services/election.service";
 
+interface GetRequest extends Request {
+  user?: { department: string; role: string }; // Adjust this type based on your actual user object
+}
+
 // Get all elections
-export const getElections = async (req: Request, res: Response) => {
+export const getElections = async (req: GetRequest, res: Response) => {
   try {
+    const userDepartment = req.user?.department;
+    const userRole = req.user?.role;
     const elections = await electionService.getAllElections();
-    res.status(200).json(elections);
+    const filteredElections = elections.filter(
+      (election) => election.department === userDepartment
+    );
+    res.status(200).json(userRole === "voter" ? filteredElections : elections);
   } catch (error) {
     res.status(500).json({ message: "Error fetching elections", error });
   }
