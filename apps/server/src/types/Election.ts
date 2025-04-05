@@ -9,7 +9,7 @@ export enum ElectionStatus {
 
 // Define the type for a candidate
 export interface Candidate {
-  _id?: Schema.Types.ObjectId; // Optional _id for candidates
+  _id: Schema.Types.ObjectId; // Optional _id for candidates
   name: string; // Name of the candidate
   picture: string; // URL or path to the candidate's picture
 }

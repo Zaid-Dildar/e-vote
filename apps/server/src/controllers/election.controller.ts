@@ -78,3 +78,23 @@ export const deleteElection = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error deleting election", error });
   }
 };
+
+// Add to election.controller.ts
+export const getElectionResults = async (req: Request, res: Response) => {
+  try {
+    const electionId = req.params.id;
+    const result = await electionService.getElectionResults(electionId);
+    res
+      .status(200)
+      .json({ message: "Election result fetched successfully", result });
+  } catch (error) {
+    if (error instanceof Error && error.message === "Election not found") {
+      res.status(404).json({ message: error.message });
+    } else {
+      console.error("Error fetching election results:", error);
+      res
+        .status(500)
+        .json({ message: "Error fetching election results", error });
+    }
+  }
+};

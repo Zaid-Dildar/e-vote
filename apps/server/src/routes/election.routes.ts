@@ -6,6 +6,7 @@ import {
   createElection,
   updateElection,
   deleteElection,
+  getElectionResults,
 } from "../controllers/election.controller";
 import { authorizeRoles, protect } from "../middleware/authMiddleware";
 
@@ -39,5 +40,13 @@ router.put(
   updateElection
 );
 router.delete("/:id", protect, authorizeRoles("admin"), deleteElection);
+
+// Add this to election.routes.ts
+router.get(
+  "/:id/results",
+  protect,
+  authorizeRoles("admin", "auditor", "voter"),
+  getElectionResults
+);
 
 export default router;
