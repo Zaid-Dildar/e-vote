@@ -208,7 +208,7 @@ export default function VotingModal({
                   {selectedCandidate === index && (
                     <div className="absolute top-0 flex items-center justify-center border rounded-md">
                       <Image
-                        src="/assets/images/voted.svg"
+                        src="/assets/images/Voted.svg"
                         alt="Voted"
                         width={150}
                         height={150}
@@ -239,7 +239,7 @@ export default function VotingModal({
                 />
                 <div className="absolute top-0 flex items-center justify-center rounded-md border">
                   <Image
-                    src="/assets/images/voted.svg"
+                    src="/assets/images/Voted.svg"
                     alt="Voted"
                     width={100}
                     height={100}
@@ -286,7 +286,7 @@ export default function VotingModal({
                 />
                 <div className="absolute top-0 flex items-center justify-center rounded-md border">
                   <Image
-                    src="/assets/images/voted.svg"
+                    src="/assets/images/Voted.svg"
                     alt="Voted"
                     width={100}
                     height={100}
