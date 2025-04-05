@@ -23,6 +23,7 @@ import {
   TrendingUp,
   Scale,
   RefreshCcw,
+  Award,
 } from "lucide-react";
 
 // Register ChartJS components
@@ -73,26 +74,43 @@ type Election = {
   __v: number;
 };
 
-type VoteType = {
-  election: string;
-  user: string;
-  candidate: string;
-  timestamp: Date;
+type ElectionResultResponse = {
+  message: string;
+  result: {
+    candidates: {
+      candidateId: string;
+      name: string;
+      votes: number;
+      percentage: number;
+    }[];
+    totalVotes: number;
+    turnout: {
+      voted: number;
+      eligible: number;
+      percentage: number;
+    };
+    voteMargin: number;
+    winner: {
+      candidateId: string;
+      candidateName: string;
+      votes: number;
+    };
+  };
 };
 
 const Dashboard = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [elections, setElections] = useState<Election[]>([]);
   const [activeElections, setActiveElections] = useState<Election[]>([]);
-  const [votes, setVotes] = useState<Record<string, VoteType[]>>({});
+  const [results, setResults] = useState<
+    Record<string, ElectionResultResponse>
+  >({});
   const [loading, setLoading] = useState({
     users: true,
     elections: true,
-    votes: true,
+    results: true,
   });
-  //   const [voteAnimations, setVoteAnimations] = useState<
-  //     Record<string, Set<string>>
-  //   >({});
+
   const previousPositionsRef = useRef<Record<string, Record<string, number>>>(
     {}
   );
@@ -138,57 +156,28 @@ const Dashboard = () => {
     }
   };
 
-  // Simulate fetching votes for active elections
-  const fetchVotes = useCallback(async () => {
-    setLoading((prev) => ({ ...prev, votes: true }));
+  // Fetch results for active elections
+  const fetchResults = useCallback(async () => {
+    setLoading((prev) => ({ ...prev, results: true }));
 
     try {
-      setVotes((prevVotes) => {
-        const simulatedVotes: Record<string, VoteType[]> = { ...prevVotes };
-        const newVoteAnimations: Record<string, Set<string>> = {};
+      const allResults: Record<string, ElectionResultResponse> = {};
 
-        activeElections.forEach((election) => {
-          // Initialize animation set for this election
-          newVoteAnimations[election._id] = new Set();
+      // Fetch results for each active election
+      const resultFetches = activeElections.map(async (election) => {
+        const res = await fetch(`/api/admin/elections/${election._id}/results`);
+        const data: ElectionResultResponse = await res.json();
 
-          const electionVotes = simulatedVotes[election._id] || [];
-          const newVotes: VoteType[] = [];
-
-          const now = new Date();
-          const start = new Date(election.startTime);
-          const end = new Date(election.endTime);
-
-          if (now >= start && now <= end) {
-            election.candidates.forEach((candidate) => {
-              const additionalVotes = Math.floor(Math.random() * 3);
-
-              if (additionalVotes > 0) {
-                // Add candidate to animations
-                newVoteAnimations[election._id]?.add(candidate._id);
-
-                for (let i = 0; i < additionalVotes; i++) {
-                  newVotes.push({
-                    election: election._id,
-                    user: `simulated-user-${Date.now()}-${Math.random()
-                      .toString(36)
-                      .substr(2, 9)}`,
-                    candidate: candidate._id,
-                    timestamp: new Date(),
-                  });
-                }
-              }
-            });
-          }
-
-          simulatedVotes[election._id] = [...electionVotes, ...newVotes];
-        });
-
-        return simulatedVotes;
+        allResults[election._id] = data;
       });
+
+      await Promise.all(resultFetches);
+
+      setResults(allResults);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch live results", err);
     } finally {
-      setLoading((prev) => ({ ...prev, votes: false }));
+      setLoading((prev) => ({ ...prev, results: false }));
     }
   }, [activeElections]);
 
@@ -219,19 +208,19 @@ const Dashboard = () => {
     }
   }, [elections, updateActiveElections]);
 
-  // Fetch votes when active elections change
+  // Fetch results when active elections change
   useEffect(() => {
     if (activeElections.length > 0) {
-      fetchVotes();
+      fetchResults();
 
       // Set up interval to update votes every 5 seconds for live updates
-      const interval = setInterval(fetchVotes, 5000);
+      const interval = setInterval(fetchResults, 5000);
 
       return () => clearInterval(interval);
     }
-  }, [activeElections, fetchVotes]);
+  }, [activeElections, fetchResults]);
 
-  // Trigger animations when votes change
+  // Trigger animations when results change
   useEffect(() => {
     const newAnimations: Record<string, Set<string>> = {};
 
@@ -241,7 +230,7 @@ const Dashboard = () => {
         newAnimations[election._id]?.add(candidate._id);
       });
     });
-  }, [votes, activeElections]);
+  }, [results, activeElections]);
 
   // Calculate user statistics
   const userStats = {
@@ -336,22 +325,16 @@ const Dashboard = () => {
 
     activeElections.forEach((election) => {
       currentPositions[election._id] = {};
-      const electionVotes = votes[election._id] || [];
-      const sortedCandidates = [...election.candidates]
-        .map((candidate) => ({
-          ...candidate,
-          count: electionVotes.filter((v) => v.candidate === candidate._id)
-            .length,
-        }))
-        .sort((a, b) => b.count - a.count);
+      const electionResult = results[election._id];
+      const sortedCandidates = electionResult?.result.candidates;
 
-      sortedCandidates.forEach((candidate, index) => {
-        currentPositions[election._id]![candidate._id] = index;
+      sortedCandidates?.forEach((candidate, index) => {
+        currentPositions[election._id]![candidate.candidateId] = index;
       });
     });
 
     return currentPositions;
-  }, [activeElections, votes]);
+  }, [activeElections, results]);
 
   // Update previous positions for animation tracking
   useEffect(() => {
@@ -399,7 +382,7 @@ const Dashboard = () => {
     }, 1000); // Match this with your animation duration
 
     return () => clearTimeout(timer);
-  }, [votes, activeElections, getCurrentPositions, previousPositionsRef]);
+  }, [results, activeElections, getCurrentPositions, previousPositionsRef]);
 
   // Add this effect to clear the animation after it plays
   useEffect(() => {
@@ -414,17 +397,15 @@ const Dashboard = () => {
           // Initialize election record
           newCounts[election._id] = newCounts[election._id] || {};
 
-          const electionVotes = votes[election._id] || [];
+          const electionResult = results[election._id];
 
-          election.candidates?.forEach((candidate) => {
+          electionResult?.result.candidates?.forEach((candidate) => {
             // Skip if candidate is invalid
-            if (!candidate?._id) return;
+            if (!candidate?.candidateId) return;
 
             newCounts[election._id] = {
               ...newCounts[election._id],
-              [candidate._id]: electionVotes.filter(
-                (v) => v.candidate === candidate._id
-              ).length,
+              [candidate.candidateId]: candidate.votes,
             };
           });
         });
@@ -434,7 +415,8 @@ const Dashboard = () => {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [votes, activeElections]);
+  }, [results, activeElections]);
+
   return (
     <div className="bg-gray-100 p-4 md:p-8 rounded-lg">
       {/* Header */}
@@ -643,20 +625,11 @@ const Dashboard = () => {
           <h2 className="text-xl font-semibold mb-4">Live Election Results</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {activeElections.map((election) => {
-              const electionVotes = votes[election._id] || [];
-              const sortedCandidates = [...election.candidates]
-                .map((candidate) => ({
-                  ...candidate,
-                  count: electionVotes.filter(
-                    (v) => v.candidate === candidate._id
-                  ).length,
-                }))
-                .sort((a, b) => b.count - a.count);
-
-              const totalVotes = sortedCandidates.reduce(
-                (sum, c) => sum + c.count,
-                0
-              );
+              const electionResult = results[election._id];
+              const sortedCandidates = electionResult?.result.candidates;
+              const totalVotes = electionResult?.result.totalVotes;
+              const voteMargin = electionResult?.result.voteMargin ?? 0;
+              const turnout = electionResult?.result.turnout;
 
               // Different colors for candidates
               const candidateColors = [
@@ -690,22 +663,23 @@ const Dashboard = () => {
                   </div>
 
                   <div className="space-y-4">
-                    {sortedCandidates.map((candidate, index) => {
-                      const percentage =
-                        totalVotes > 0
-                          ? Math.round((candidate.count / totalVotes) * 100)
-                          : 0;
+                    {sortedCandidates?.map((candidate, index) => {
+                      const percentage = candidate.percentage.toFixed(2);
 
                       const prevCount =
-                        previousVoteCounts[election._id]?.[candidate._id] || 0;
-                      const hasNewVotes = candidate.count > prevCount;
+                        previousVoteCounts[election._id]?.[
+                          candidate.candidateId
+                        ] || 0;
+                      const hasNewVotes = candidate.votes > prevCount;
 
                       const isMoving =
-                        movementAnimations[election._id]?.[candidate._id];
+                        movementAnimations[election._id]?.[
+                          candidate.candidateId
+                        ];
 
                       return (
                         <div
-                          key={candidate._id}
+                          key={candidate.candidateId}
                           className={` 
         relative 
         transition-all 
@@ -735,8 +709,11 @@ const Dashboard = () => {
                           )}
 
                           <div className="flex justify-between mb-1">
-                            <span className="text-sm font-medium">
+                            <span className="text-sm font-medium flex">
                               {candidate.name}
+                              {index === 0 && (
+                                <Award className="text-amber-600" />
+                              )}
                             </span>
                             <span
                               className={`
@@ -748,7 +725,9 @@ const Dashboard = () => {
             ${hasNewVotes ? "text-blue-600 scale-110" : "text-gray-900 scale-100"}
           `}
                             >
-                              {candidate.count} votes ({percentage}%)
+                              {candidate.votes}{" "}
+                              {candidate.votes !== 1 ? "votes" : "vote"} (
+                              {percentage}%)
                             </span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -772,9 +751,24 @@ const Dashboard = () => {
                   {/* Rest of the component remains the same */}
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <p className="text-sm text-gray-600 flex items-center gap-1">
-                      <Users className="w-4 h-4" /> Total votes cast:{" "}
+                      <Vote className="w-4 h-4" /> Total votes cast:{" "}
                       {totalVotes}
                     </p>
+                    {turnout && (
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <Users className="w-4 h-4" />
+                        Turnout: {turnout.voted}/{turnout.eligible} voters (
+                        {turnout.percentage.toFixed(2)}%)
+                      </p>
+                    )}
+
+                    {voteMargin !== null && (
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <TrendingUp className="w-4 h-4" />
+                        Vote Margin: {voteMargin.toFixed(2)}%
+                      </p>
+                    )}
+
                     <p className="text-sm text-gray-600 flex items-center gap-1">
                       <Clock className="w-4 h-4" />
                       Time remaining:{" "}

@@ -1,9 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Calendar, CalendarCheck, Clock, Vote } from "lucide-react";
-import VotingModal from "./VotingModal"; // Import modal component
-import { useUserStore } from "../../store/userStore";
-import { getElectionResults } from "@lib/voteUtils";
-import toast from "react-hot-toast";
+import VotingModal from "./VotingModal";
 
 interface Candidate {
   _id: string;
@@ -26,61 +23,40 @@ interface VoteData {
   candidate: string;
 }
 
-export default function ElectionCard({ election }: { election: Election }) {
-  const { user } = useUserStore();
-  const { name, startTime, endTime, candidates, _id } = election;
+interface ElectionResult {
+  winner: {
+    candidateId: string;
+    candidateName: string;
+    votes: number;
+  } | null;
+  candidates: {
+    candidateId: string;
+    name: string;
+    votes: number;
+    percentage: number;
+  }[];
+  turnout: {
+    voted: number;
+    eligible: number;
+    percentage: number;
+  };
+  totalVotes: number;
+  voteMargin?: number;
+}
+
+export default function ElectionCard({
+  election,
+  userVotes,
+  result,
+}: {
+  election: Election;
+  userVotes: VoteData[];
+  result?: ElectionResult;
+}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [hasVoted, setHasVoted] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const [winnerId, setWinnerId] = useState<string | null>(null);
-  const [votes, setVotes] = useState<VoteData[]>([]);
-
-  const winnerCandidate = election.candidates.find(
-    (candidate) => candidate._id === winnerId
+  const [hasVoted, setHasVoted] = useState(
+    userVotes.some((vote) => vote.election === election._id)
   );
-
-  useEffect(() => {
-    if (votes.length > 0) {
-      const { winnerId } = getElectionResults(_id, votes);
-      setWinnerId(winnerId);
-    } else {
-      setWinnerId(null);
-    }
-  }, [votes, _id]);
-
-  // Combine both vote fetches into one
-  useEffect(() => {
-    const fetchVotes = async () => {
-      if (!user?.id) return;
-
-      try {
-        setLoading(true);
-        const response = await fetch("/api/user/votes/user", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user: user.id }),
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch votes");
-
-        const data: VoteData[] = await response.json();
-        setVotes(data);
-
-        // Check if user has voted in this election
-        setHasVoted(data.some((vote) => vote.election === election._id));
-      } catch (error) {
-        console.error("Error fetching votes:", error);
-        toast.error(
-          error instanceof Error ? error.message : "An unknown error occurred"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchVotes();
-  }, [user?.id, election._id]);
 
   const getElectionStatus = (startTime: string, endTime: string) => {
     const now = new Date();
@@ -90,22 +66,28 @@ export default function ElectionCard({ election }: { election: Election }) {
     return "completed";
   };
 
-  const electionStatus = getElectionStatus(startTime, endTime);
+  const electionStatus = getElectionStatus(
+    election.startTime,
+    election.endTime
+  );
+  const winnerCandidate = result?.winner
+    ? election.candidates.find((c) => c._id === result.winner?.candidateId)
+    : null;
 
   return (
     <>
       <div className="bg-white shadow-md rounded-lg p-4 pb-2 border hover:bg-gray-100 flex flex-col h-full">
         <h2 className="text-lg bg-[#112B4F] text-white font-bold -m-4 p-3 mb-2 rounded rounded-b-none">
-          {name}
+          {election.name}
         </h2>
 
         <div className="text-sm text-gray-600 mb-2 flex items-center gap-1">
           <Calendar className="w-4 h-4" /> Starts:{" "}
-          {new Date(startTime).toLocaleString()}
+          {new Date(election.startTime).toLocaleString()}
         </div>
         <div className="text-sm text-gray-600 mb-2 flex items-center gap-1">
           <Calendar className="w-4 h-4" /> Ends:{" "}
-          {new Date(endTime).toLocaleString()}
+          {new Date(election.endTime).toLocaleString()}
         </div>
 
         <div
@@ -126,26 +108,18 @@ export default function ElectionCard({ election }: { election: Election }) {
           {electionStatus}
         </div>
 
-        <p className="text-sm text-gray-500">Candidates: {candidates.length}</p>
+        <p className="text-sm text-gray-500">
+          Candidates: {election.candidates.length}
+        </p>
 
         <div className="mt-auto">
           {electionStatus === "completed" ? (
-            loading ? (
-              <p className="text-center text-gray-500 py-4 border-t">
-                Checking voting status...
-              </p>
-            ) : (
-              <p className="text-green-600 font-bold text-center py-4 border-t">
-                Winner: {winnerCandidate?.name ?? "None"}
-              </p>
-            )
+            <p className="text-green-600 font-bold text-center py-4 border-t">
+              Winner: {winnerCandidate?.name ?? "None"}
+            </p>
           ) : electionStatus === "scheduled" ? (
             <p className="text-gray-500 text-center py-4 border-t">
               Voting not started yet
-            </p>
-          ) : loading ? (
-            <p className="text-center text-gray-500 py-4 border-t">
-              Checking voting status...
             </p>
           ) : hasVoted ? (
             <p className="text-green-600 font-bold text-center py-4 border-t">

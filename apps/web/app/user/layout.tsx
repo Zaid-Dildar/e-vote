@@ -10,9 +10,9 @@ export default function RootLayout({
       <Sidebar type="voter" />
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-64">
+      <div className="flex-1 lg:ml-64 lg:max-w-[calc(100%-16rem)]">
         <Header />
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 max-w-screen p-4">{children}</main>
       </div>
     </div>
   );

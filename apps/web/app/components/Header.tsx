@@ -46,7 +46,10 @@ const Header = () => {
     <header className="sticky top-0 z-20 w-full bg-white shadow-md p-4 flex justify-between items-center md:px-8">
       <h1 className="ml-12 xl:ml-0 text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-800 via-[#112B4F] via-20% to-[#14386b] to-80% ">
         Welcome <span className="hidden md:inline">Back</span>,{" "}
-        {truncateName(user?.name || "User")}
+        <span className="inline md:hidden">
+          {truncateName(user?.name || "User")}
+        </span>
+        <span className="hidden md:inline">{user?.name || "User"}</span>
       </h1>
 
       <button
