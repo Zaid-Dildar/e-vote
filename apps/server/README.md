@@ -15,8 +15,8 @@ It provides a REST API for the **web** and **mobile** applications, handling aut
 ## 📂 Project Structure
 
 ```
-server/              # Express.js backend (TypeScript)
-├── api/                  # Vercel deploymeny
+server/                       # Express.js backend (TypeScript)
+├── api/                      # Vercel deploymeny
 ├── src/
 │       │   ├── config/       # Database & env config
 │       │   ├── controllers/  # Route handlers
@@ -26,9 +26,9 @@ server/              # Express.js backend (TypeScript)
 │       │   ├── validators/   # Request validation
 │       │   ├── app.ts
 │       │   ├── server.ts     # Server entry point
-├── .env.sample              # Environment variables
-├── package.json      # Dependencies & scripts
-├── tsconfig.json     # TypeScript config
+├── .env.sample               # Environment variables
+├── package.json              # Dependencies & scripts
+├── tsconfig.json             # TypeScript config
 ```
 
 ## 🛠️ Setup & Installation
