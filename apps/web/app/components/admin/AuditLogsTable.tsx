@@ -61,7 +61,7 @@ export default function AuditLogsTable({ auditLogs, searchTerm }: Props) {
               <span className="text-sm text-gray-500">
                 By{" "}
                 <span className="font-semibold text-lg">
-                  {highlightText(log.user.name, searchTerm)}
+                  {highlightText(log.user?.name, searchTerm)}
                 </span>
               </span>
             </div>
@@ -89,7 +89,7 @@ export default function AuditLogsTable({ auditLogs, searchTerm }: Props) {
           .toLocaleString()
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        log.user.name.toLowerCase().includes(searchTerm.toLowerCase())
+        log.user?.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     });
   }, [auditLogs, searchTerm]);

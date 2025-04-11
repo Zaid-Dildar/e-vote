@@ -17,10 +17,16 @@ The application is deployed on **Vercel**:
 
 ```
 
-web/                        # Next.js web app (TypeScript)
+web/                            # Next.js web app (TypeScript)
 │── app/
-│ ├── web/
-│── components/
+│       ├── api/                # API routes to communicate with backend
+│         │ ├── admin/          # API routes for admin
+│         │ ├── audit/          # API routes for auditor
+│         │ ├── user/           # API routes for user
+│       ├── admin/              # Admin Module Pages
+│       ├── audit/              # Auditor Module Pages
+│       ├── user/               # Voter Module Pages
+│       ├── components/         # Reusable UI components
 │── next.config.json            # next config
 │── tailwind.config.json        # tailwind config
 │── package.json

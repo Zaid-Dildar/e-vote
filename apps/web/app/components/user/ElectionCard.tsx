@@ -131,7 +131,7 @@ export default function ElectionCard({
                 onClick={() => setIsModalOpen(true)}
                 className="w-full px-6 py-2 bg-[#112B4F] text-white rounded-md hover:bg-[#0E223A] cursor-pointer shadow-md group relative"
               >
-                <span className="max-lg:hidden group-disabled:hidden absolute -top-10 w-6 h-30 bg-white opacity-10 rotate-6 translate-x-50 group-hover:-translate-x-40 transition-all duration-1000 ease" />
+                <span className="max-lg:hidden group-disabled:hidden absolute -top-10 w-6 h-30 bg-white opacity-10 rotate-6 translate-x-60 group-hover:-translate-x-50 transition-all duration-1000 ease" />
                 Vote Now
               </button>
             </div>

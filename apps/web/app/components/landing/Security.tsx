@@ -88,7 +88,7 @@ const Security = (): JSX.Element => {
           className="flex justify-center mt-6"
         >
           <Link
-            href="https://github.com/Zaid-Dildar/e-vote/tree/feature/web-landing-page/apps/web"
+            href="https://github.com/Zaid-Dildar/e-vote/"
             target="_blank"
             rel="external"
             className="relative rounded px-4 lg:px-8 py-3 overflow-hidden group border border-white hover:bg-gradient-to-r hover:from-gray-900 hover:to-gray-800 text-white transition-all ease-out duration-400 text-sm md:text-lg font-bold"
