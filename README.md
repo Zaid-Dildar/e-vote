@@ -33,11 +33,15 @@ e-vote/
 │── apps/
 │   ├── server/      # Express.js backend (TypeScript)
 │   ├── web/         # Next.js web app (TypeScript)
-│   ├── mobile/      # React Native app (TypeScript)
 │── packages/
 │   ├── eslint-config/
 │   ├── typescript-config/
 │   ├── utils/       # Shared utilities
+│── docs/
+│   ├── thesis/
+│   │   ├── Thesis_(E-Vote)_Final.pdf
+│   │   ├── Final_Presentation_(E-Vote).pdf
+│   │   ├── User_Manual.pdf
 │── .gitignore
 │── package.json
 │── turbo.json       # Turborepo config
