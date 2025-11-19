@@ -2,6 +2,12 @@
 
 E-Vote is a secure online voting system that leverages biometric authentication for verification. The project consists of a web application, a mobile application, and a backend service, all built using modern technologies.
 
+## 📄 Thesis Documents
+- [Final Thesis](./docs/thesis/Thesis_(E-Vote)_Final.pdf)
+- [Presentation Slides](./docs/thesis/Final_Presentation_(E-Vote).pdf)
+- [User Manual](./docs/thesis/User_Manual.pdf)
+- [Video Demo](https://res.cloudinary.com/dmx66oic1/video/upload/v1763535964/E-Vote/E-Vote_Demo_mbv1os.mp4)
+
 ## 🚀 Tech Stack
 
 ### **Frontend**
