@@ -6,21 +6,20 @@ E-Vote is a secure online voting system that leverages biometric authentication 
 
 > **Note:** If the direct-view link does not load in your browser, use the **GitHub View (Fallback)** link right below it.
 
-- **Final Thesis**  
-   * <a href="https://docs.google.com/viewer?url=https://raw.githubusercontent.com/Zaid-Dildar/e-vote/main/docs/thesis/Thesis_(E-Vote)_Final.pdf" target="_blank">Open in Browser</a>  
-   * <a href="./docs/thesis/Thesis_(E-Vote)_Final.pdf" target="_blank">GitHub View (Fallback)</a>
+- **Final Thesis** 
+  * [Open in Browser](https://docs.google.com/viewer?url=https://raw.githubusercontent.com/Zaid-Dildar/e-vote/main/docs/thesis/Thesis_(E-Vote)_Final.pdf)
+  * [GitHub View (Fallback)](./docs/thesis/Thesis_(E-Vote)_Final.pdf)
 
-- **Presentation Slides**  
-   * <a href="https://docs.google.com/viewer?url=https://raw.githubusercontent.com/Zaid-Dildar/e-vote/main/docs/thesis/Final_Presentation_(E-Vote).pdf" target="_blank">Open in Browser</a>  
-   * <a href="./docs/thesis/Final_Presentation_(E-Vote).pdf" target="_blank">GitHub View (Fallback)</a>
+- **Presentation Slides**   
+  * [Open in Browser](https://docs.google.com/viewer?url=https://raw.githubusercontent.com/Zaid-Dildar/e-vote/main/docs/thesis/Final_Presentation_(E-Vote).pdf)
+  * [GitHub View (Fallback)](./docs/thesis/Final_Presentation_(E-Vote).pdf) 
 
-- **User Manual**  
-   * <a href="https://docs.google.com/viewer?url=https://raw.githubusercontent.com/Zaid-Dildar/e-vote/main/docs/thesis/User_Manual.pdf" target="_blank">Open in Browser</a>  
-   * <a href="./docs/thesis/User_Manual.pdf" target="_blank">GitHub View (Fallback)</a>
+- **User Manual**   
+  * [Open in Browser](https://docs.google.com/viewer?url=https://raw.githubusercontent.com/Zaid-Dildar/e-vote/main/docs/thesis/User_Manual.pdf)
+  * [GitHub View (Fallback)](./docs/thesis/User_Manual.pdf) 
 
-- **Video Demo** 
-   * <a href="https://res.cloudinary.com/dmx66oic1/video/upload/v1763535964/E-Vote/E-Vote_Demo_mbv1os.mp4" target="_blank">Watch Video</a>
-
+- **Video Demo**   
+  * [Watch Video](https://res.cloudinary.com/dmx66oic1/video/upload/v1763535964/E-Vote/E-Vote_Demo_mbv1os.mp4) 
 
 ## 🚀 Tech Stack
 
